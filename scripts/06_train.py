@@ -11,8 +11,7 @@ from utils.dataset import SafeScapeDataset, class_weights
 from utils.models import build_model
 from utils.train_utils import train_model
 
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST = ROOT / "data" / "processed" / "windows_manifest.csv"
+from utils.paths import ROOT, WINDOWS_MANIFEST as MANIFEST
 
 ARCH_TO_FEATURE = {"mfcc_cnn": "mfcc", "logmel_crnn": "logmel", "transformer": "logmel"}
 

@@ -20,8 +20,7 @@ from utils.models import build_model
 from utils.labels import LABELS
 from utils.metrics import full_report, report_to_markdown
 
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST = ROOT / "data" / "processed" / "windows_manifest.csv"
+from utils.paths import ROOT, WINDOWS_MANIFEST as MANIFEST
 ARCH_TO_FEATURE = {"mfcc_cnn": "mfcc", "logmel_crnn": "logmel", "transformer": "logmel"}
 
 
@@ -45,6 +44,8 @@ def main():
     ap.add_argument("--hidden-size", type=int, default=64, help="only used by logmel_crnn")
     ap.add_argument("--tag", default=None, help="label for this run in the report, e.g. 'fp32' or 'quantized'")
     ap.add_argument("--cpu-only", action="store_true", help="force CPU (matches serving target)")
+    ap.add_argument("--calibration", default=None,
+                    help="path to calibration.json; applies its per-class logit bias before argmax")
     args = ap.parse_args()
 
     feature_type = ARCH_TO_FEATURE[args.arch]
@@ -62,11 +63,17 @@ def main():
     model.load_state_dict(state)
     model.eval()
 
+    bias = torch.zeros(len(LABELS), device=device)
+    if args.calibration:
+        import json
+        with open(args.calibration) as f:
+            bias = torch.tensor(json.load(f)["bias"], dtype=torch.float32, device=device)
+
     all_true, all_pred = [], []
     with torch.no_grad():
         for x, y in loader:
             x = x.to(device)
-            out = model(x)
+            out = model(x) + bias
             all_true.extend(y.numpy().tolist())
             all_pred.extend(out.argmax(1).cpu().numpy().tolist())
 

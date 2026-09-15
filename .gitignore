@@ -13,3 +13,4 @@ data/
 # OS
 Thumbs.db
 .DS_Store
+reports/v2_pipeline.log

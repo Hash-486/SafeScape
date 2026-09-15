@@ -35,7 +35,7 @@ def build_quantized(arch, hidden_size):
 
 
 def cmd_quantize(args):
-    fp32_ckpt = ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt"
+    fp32_ckpt = Path(args.ckpt) if args.ckpt else ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt"
     model = build_model(args.arch, **model_kwargs(args.arch, args.hidden_size))
     model.load_state_dict(torch.load(fp32_ckpt, map_location="cpu", weights_only=True))
     model.eval()
@@ -57,7 +57,7 @@ def cmd_export(args):
         weights_path = ROOT / "models" / "quantized" / f"{args.arch}_quant.pt"
         model = build_quantized(args.arch, args.hidden_size)
     else:
-        weights_path = ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt"
+        weights_path = Path(args.ckpt) if args.ckpt else ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt"
         model = build_model(args.arch, **model_kwargs(args.arch, args.hidden_size))
         model.eval()
 
@@ -94,12 +94,14 @@ def main():
     p1 = sub.add_parser("quantize")
     p1.add_argument("--arch", required=True, choices=["mfcc_cnn", "logmel_crnn", "transformer"])
     p1.add_argument("--hidden-size", type=int, default=64, help="only used by logmel_crnn")
+    p1.add_argument("--ckpt", default=None, help="fp32 checkpoint to quantize")
     p1.set_defaults(func=cmd_quantize)
 
     p2 = sub.add_parser("export")
     p2.add_argument("--arch", required=True, choices=["mfcc_cnn", "logmel_crnn", "transformer"])
     p2.add_argument("--quantized", action="store_true")
     p2.add_argument("--hidden-size", type=int, default=64, help="only used by logmel_crnn")
+    p2.add_argument("--ckpt", default=None, help="fp32 checkpoint to export (ignored with --quantized)")
     p2.set_defaults(func=cmd_export)
 
     args = ap.parse_args()

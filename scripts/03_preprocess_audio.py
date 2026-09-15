@@ -11,10 +11,7 @@ from tqdm import tqdm
 
 from utils import audio_io
 
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST_IN = ROOT / "data" / "processed" / "manifest.csv"
-WINDOWS_DIR = ROOT / "data" / "processed" / "windows"
-MANIFEST_OUT = ROOT / "data" / "processed" / "windows_manifest.csv"
+from utils.paths import ROOT, MANIFEST as MANIFEST_IN, WINDOWS_DIR, WINDOWS_MANIFEST as MANIFEST_OUT
 
 RNG_SEED = 42
 

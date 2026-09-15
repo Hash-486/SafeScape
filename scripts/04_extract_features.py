@@ -16,9 +16,7 @@ from tqdm import tqdm
 
 from utils import audio_io, features as feat_mod
 
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST = ROOT / "data" / "processed" / "windows_manifest.csv"
-FEATURES_DIR = ROOT / "data" / "processed" / "features"
+from utils.paths import ROOT, WINDOWS_MANIFEST as MANIFEST, FEATURES_DIR
 
 
 def feature_path(window_path: str, feature_type: str) -> Path:

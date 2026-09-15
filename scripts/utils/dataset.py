@@ -14,8 +14,7 @@ from pathlib import Path
 HAZARD_AUG_P = 0.7
 AMBIENCE_AUG_P = 0.3
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-FEATURES_DIR = ROOT / "data" / "processed" / "features"
+from .paths import ROOT, FEATURES_DIR
 
 
 def feature_path(window_path: str, feature_type: str) -> Path:

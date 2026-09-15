@@ -45,6 +45,14 @@ class Predictor:
         self.model.load_state_dict(state)
         self.model.eval()
 
+        # per-class logit bias fitted on the val split (scripts/12_calibrate_logits.py);
+        # absent for bundles exported before calibration existed
+        calib_path = exported_dir / "calibration.json"
+        self.logit_bias = torch.zeros(len(LABELS))
+        if calib_path.exists():
+            with open(calib_path) as f:
+                self.logit_bias = torch.tensor(json.load(f)["bias"], dtype=torch.float32)
+
     def _prep_waveform(self, y, orig_sr):
         if orig_sr != self.sample_rate:
             import librosa
@@ -69,7 +77,7 @@ class Predictor:
     def predict(self, y, orig_sr):
         y = self._prep_waveform(y, orig_sr)
         x = self._extract_features(y)
-        logits = self.model(x)
+        logits = self.model(x) + self.logit_bias
         probs = F.softmax(logits, dim=1).squeeze(0).numpy()
         idx = int(np.argmax(probs))
         label = LABELS[idx]
