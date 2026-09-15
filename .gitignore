@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data (regenerate via scripts/01_download_notes.md + 02/03 pipeline; 3.8GB, not tracked)
+data/
+
+# Claude Code / local tooling
+.claude/
+.remember/
+
+# OS
+Thumbs.db
+.DS_Store

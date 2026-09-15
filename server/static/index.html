@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SafeScape</title>
+<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">SafeScape</span>
+    <span id="connDot" class="conn-dot conn-unknown" title="connection status"></span>
+  </header>
+
+  <main id="screens">
+    <!-- HOME -->
+    <section id="screen-home" class="screen active">
+      <div id="statusCard" class="status-card state-idle">
+        <div id="statusIcon" class="status-icon">&#9673;</div>
+        <div id="statusText" class="status-text">Not listening</div>
+        <div id="statusSub" class="status-sub">Tap start to begin monitoring</div>
+      </div>
+      <button id="toggleBtn" class="big-button" aria-label="Start or stop listening">Start Listening</button>
+      <p id="lastResult" class="last-result"></p>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="screen-history" class="screen">
+      <h2 class="screen-title">Alert History</h2>
+      <ul id="historyList" class="history-list"></ul>
+      <p id="historyEmpty" class="empty-hint">No alerts yet.</p>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="screen-settings" class="screen">
+      <h2 class="screen-title">Settings</h2>
+      <label class="field-label" for="serverUrl">Inference server URL</label>
+      <input id="serverUrl" class="text-input" type="text" placeholder="http://192.168.1.23:8000" />
+      <button id="testConnBtn" class="secondary-button">Test Connection</button>
+      <p id="testConnResult" class="test-result"></p>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="home" aria-label="Home">
+      <span class="nav-icon">&#8962;</span><span>Home</span>
+    </button>
+    <button class="nav-btn" data-screen="history" aria-label="History">
+      <span class="nav-icon">&#8942;</span><span>History</span>
+    </button>
+    <button class="nav-btn" data-screen="settings" aria-label="Settings">
+      <span class="nav-icon">&#9881;</span><span>Settings</span>
+    </button>
+  </nav>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
