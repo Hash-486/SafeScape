@@ -713,6 +713,16 @@ def main():
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(W), Inches(H)
 
+    # python-pptx's default template carries its own author in the file properties
+    # ("Steve Canny", plus a "generated using python-pptx" comment). Overwrite them so
+    # PowerPoint's File > Properties shows this project's authors instead.
+    cp = prs.core_properties
+    cp.author = "; ".join(name for name, _, _ in TEAM)
+    cp.last_modified_by = TEAM[-1][0]
+    cp.title = "SafeScape - On-Device Acoustic Distress and Hazard Recognition"
+    cp.subject = COURSE
+    cp.comments = ""
+
     s_title(prs)
     s_problem(prs)
     for key, name in LIT_OWNER:

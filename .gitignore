@@ -14,3 +14,4 @@ data/
 Thumbs.db
 .DS_Store
 reports/v2_pipeline.log
+HANDOFF.md
