@@ -30,13 +30,21 @@ MARGIN = 0.62
 
 # ----------------------------------------------------------------------------- content
 TEAM = [
-    ("[Member 1 — full name]", "MFCC-CNN", "[Reg. no.]"),
-    ("[Member 2 — full name]", "log-mel CRNN (champion)", "[Reg. no.]"),
-    ("[Member 3 — full name]", "Distilled Tiny Transformer", "[Reg. no.]"),
+    ("Amruth Rohan KR", "MFCC-CNN", "Cb.en.u4ece23222"),
+    ("Harish Venkat VS", "log-mel CRNN (champion), Distilled Tiny Transformer",
+     "Cb.en.u4ece23219"),
+]
+
+# Literature slides are keyed by architecture and owned by whoever presents it, so the
+# slide count does not depend on len(TEAM) -- one member may own more than one model.
+LIT_OWNER = [
+    ("MFCC-CNN", "Amruth Rohan KR"),
+    ("log-mel CRNN", "Harish Venkat VS"),
+    ("Distilled Tiny Transformer", "Harish Venkat VS"),
 ]
 GUIDE = "Dr. Bagyammal T, Professor, CSE Department"
-GROUP_NO = "[Group No.]"
-COURSE = "[Course code — Neural Networks & Deep Learning]"
+GROUP_NO = "1"
+COURSE = "23CSE473 — Neural Networks and Deep Learning"
 GITHUB = "https://github.com/Hash-486/SafeScape"
 DEMO_URL = "[LinkedIn product demo URL]"
 
@@ -707,7 +715,7 @@ def main():
 
     s_title(prs)
     s_problem(prs)
-    for (name, _, _), key in zip(TEAM, ["MFCC-CNN", "log-mel CRNN", "Distilled Tiny Transformer"]):
+    for key, name in LIT_OWNER:
         s_literature(prs, key, name)
     s_system_arch(prs)
     s_modules(prs)
