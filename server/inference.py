@@ -57,28 +57,49 @@ class Predictor:
         if orig_sr != self.sample_rate:
             import librosa
             y = librosa.resample(y, orig_sr=orig_sr, target_sr=self.sample_rate)
-        y = audio_io.denoise(y, sr=self.sample_rate)
-        n = self.window_samples
-        if len(y) < n:
-            y = np.pad(y, (0, n - len(y)))
-        else:
-            y = y[-n:]  # most recent window
-        return y.astype(np.float32)
+        return audio_io.denoise(y, sr=self.sample_rate).astype(np.float32)
 
     def _extract_features(self, y):
         if self.feature_type == "mfcc":
             f = feat_mod.mfcc_features(y, sr=self.sample_rate)
         else:
             f = feat_mod.logmel_features(y, sr=self.sample_rate)
-        f = feat_mod.normalize(f)
-        return torch.from_numpy(f).unsqueeze(0).unsqueeze(0)  # (1,1,F,T)
+        return feat_mod.normalize(f)
+
+    def _pick(self, probs):
+        """Which window's verdict speaks for the whole clip.
+
+        A missed hazard costs more than a false alarm per the proposal, so any window
+        that independently calls a hazard makes the clip that hazard, most confident
+        first. Averaging across windows instead would bury a 0.3s glass_break under
+        the second of room tone that follows it.
+        """
+        top = probs.argmax(axis=1)
+        hazards = [i for i, t in enumerate(top) if LABELS[t] in HAZARD_LABELS]
+        pool = hazards or range(len(top))
+        return max(pool, key=lambda i: probs[i, top[i]])
 
     @torch.no_grad()
     def predict(self, y, orig_sr):
         y = self._prep_waveform(y, orig_sr)
-        x = self._extract_features(y)
-        logits = self.model(x) + self.logit_bias
-        probs = F.softmax(logits, dim=1).squeeze(0).numpy()
+        # Judge every 1s window of the clip, not just the last one. The browser sends
+        # 2s and the model's window is 1s, so the old y[-n:] discarded half of every
+        # clip: a glass_break in the first half came back as distress_call 72%.
+        # This is the same call 03_preprocess_audio.py used to cut the training set,
+        # min_energy gate included, so serving sees windows of the kind it was taught.
+        windows = audio_io.window_signal(y, win=self.window_samples,
+                                         hop=self.window_samples // 2)
+        if not windows:
+            # Every window fell below the training set's energy floor. The model was
+            # never shown silence and reads it as distress_call at 77%, so this answers
+            # from the gate rather than asking it a question it cannot have an opinion on.
+            probs = np.zeros(len(LABELS), dtype=np.float32)
+            probs[LABELS.index("ambience")] = 1.0
+        else:
+            x = torch.from_numpy(
+                np.stack([self._extract_features(w) for w in windows])).unsqueeze(1)
+            per_window = F.softmax(self.model(x) + self.logit_bias, dim=1).numpy()
+            probs = per_window[self._pick(per_window)]
         idx = int(np.argmax(probs))
         label = LABELS[idx]
         return {
