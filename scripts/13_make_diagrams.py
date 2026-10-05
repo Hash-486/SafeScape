@@ -174,8 +174,79 @@ def compare_diagram():
     return p
 
 
+def cnn_diagram():
+    fig, ax = canvas(13, 3.2)
+    y, bw, bh = 0.62, 1.24, 0.92
+    xs = [0.05 + i * 1.44 for i in range(7)]
+    specs = [
+        ("MFCC input", "input", "(1, 40, 101)"),
+        ("Conv block 1", "prep", "Conv3×3→16, BN, ReLU\npool 2×2 → (16, 20, 50)"),
+        ("Conv block 2", "prep", "Conv3×3→32, BN, ReLU\npool 2×2 → (32, 10, 25)"),
+        ("Conv block 3", "prep", "Conv3×3→64, BN, ReLU\npool 2×2 → (64, 5, 12)"),
+        ("Conv block 4", "feat", "Conv3×3→64, BN, ReLU\nno pool → (64, 5, 12)"),
+        ("global avg-pool", "model", "(64, 5, 12) → (64)\ntime order discarded"),
+        ("dropout + FC", "out", "p = 0.253\n(64) → 5 logits"),
+    ]
+    for x, (label, kind, sub) in zip(xs, specs):
+        box(ax, (x, y), bw, bh, label, kind, sub, fs=8.6)
+    for i in range(len(xs) - 1):
+        arrow(ax, (xs[i] + bw, y + bh / 2), (xs[i + 1], y + bh / 2))
+    ax.text(5.0, 2.12, "MFCC-CNN  (60,901 params · 79.2% leak-free test accuracy)",
+            ha="center", fontsize=13, fontweight="bold", color=INK)
+    ax.text(5.0, 1.86, "2×2 pooling halves the time axis three times (101 → 12), then global average pooling "
+                       "collapses what is left into one vector",
+            ha="center", fontsize=9, color=DIM, style="italic")
+    fig.tight_layout()
+    p = OUT / "mfcc_cnn_architecture.png"
+    fig.savefig(p, dpi=210, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return p
+
+
+def transformer_diagram(hidden):
+    fig, ax = canvas(13, 4.6)
+    bw, bh = 1.42, 0.78
+    xs = [0.05 + i * 1.68 for i in range(6)]
+    top = [
+        ("log-mel input", "input", "(1, 64, 101)"),
+        ("frames → tokens", "feat", "transpose → (101, 64)\none token per 10 ms"),
+        ("Linear proj", "prep", "64 → d=64, + [CLS]\n+ learned pos-embed"),
+        ("Encoder ×2", "model", "4 heads, FFN 128\ndropout 0.2"),
+        ("[CLS] token", "feat", "(102, 64) → (64)"),
+        ("FC", "out", "(64) → 5 logits"),
+    ]
+    yt = 2.02
+    for x, (label, kind, sub) in zip(xs, top):
+        box(ax, (x, yt), bw, bh, label, kind, sub, fs=9)
+    for i in range(len(xs) - 1):
+        arrow(ax, (xs[i] + bw, yt + bh / 2), (xs[i + 1], yt + bh / 2))
+    yb = 0.55
+    bottom = [(xs[1], ("CRNN teacher", "serve", f"frozen · hidden={hidden}\n89.7% leak-free test")),
+              (xs[3], ("soft targets", "serve", "softmax(z_t / T)\nT = 4")),
+              (xs[5], ("KD loss", "out", "0.5·CE + 0.5·T²·KL"))]
+    for x, (label, kind, sub) in bottom:
+        box(ax, (x, yb), bw, bh, label, kind, sub, fs=9)
+    arrow(ax, (xs[0] + bw / 2, yt), (xs[1], yb + bh / 2))
+    arrow(ax, (xs[1] + bw, yb + bh / 2), (xs[3], yb + bh / 2))
+    arrow(ax, (xs[3] + bw, yb + bh / 2), (xs[5], yb + bh / 2))
+    arrow(ax, (xs[5] + bw / 2, yt), (xs[5] + bw / 2, yb + bh), label=None)
+    ax.text(xs[5] + bw / 2 + 0.08, (yt + yb + bh) / 2, "student logits z_s", fontsize=8,
+            color=DIM, style="italic", va="center")
+    ax.text(5.0, 3.32, "Distilled Tiny Transformer  (84,293 params · 83.8% leak-free test accuracy)",
+            ha="center", fontsize=13, fontweight="bold", color=INK)
+    ax.text(5.0, 3.08, "student (top) learns from the hard labels and from the frozen CRNN teacher's softened "
+                       "output distribution (bottom)",
+            ha="center", fontsize=9, color=DIM, style="italic")
+    fig.tight_layout()
+    p = OUT / "transformer_architecture.png"
+    fig.savefig(p, dpi=210, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return p
+
+
 if __name__ == "__main__":
     with open(ROOT / "models" / "exported" / "preprocess_config.json") as f:
         hidden = json.load(f).get("hidden_size", 64)
-    for p in (system_diagram(), crnn_diagram(hidden), compare_diagram()):
+    for p in (system_diagram(), crnn_diagram(hidden), compare_diagram(), cnn_diagram(),
+              transformer_diagram(hidden)):
         print("wrote", p)
