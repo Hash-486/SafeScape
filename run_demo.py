@@ -18,6 +18,7 @@ import argparse
 import json
 import socket
 import subprocess
+import tempfile
 import sys
 import time
 from pathlib import Path
@@ -169,16 +170,20 @@ def main():
 
     # ---- 4. start -----------------------------------------------------------
     step(4, f"Starting uvicorn on {args.host}:{args.port}")
+    # Server output goes to a file, never an unread PIPE: on Windows the pipe buffer
+    # fills after ~45 access-log lines and the server freezes mid-demo.
+    log_path = Path(tempfile.gettempdir()) / "safescape_server.log"
+    log = open(log_path, "w")
     proc = subprocess.Popen(
         [PYTHON, "-m", "uvicorn", "server.app:app",
          "--host", args.host, "--port", str(args.port)],
-        cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT, text=True)
 
     health = f"http://127.0.0.1:{args.port}/health"
     for _ in range(40):
         if proc.poll() is not None:
             fail("server exited during startup")
-            print(proc.stdout.read() if proc.stdout else "")
+            print(log_path.read_text(errors="ignore"))
             return 1
         try:
             if get_json(health, timeout=2).get("status") == "ok":
