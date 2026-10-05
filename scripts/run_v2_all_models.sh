@@ -44,6 +44,21 @@ $PY 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt $CK/logmel_crnn_v
 $PY 10_evaluate.py --arch transformer --ckpt $CK/transformer_v2.pt --tag transformer_v2 --cpu-only \
     --calibration $EX/transformer/calibration.json --metrics-json ../reports/metrics/transformer_v2.json
 
+step "4b/5 re-evaluate on the leak-free test split (headline numbers for dashboard/report)"
+# 230 distress_call test windows duplicate train/val audio; see 18_flag_duplicate_sources.py
+$PY 18_flag_duplicate_sources.py
+DEDUP=../data/processed_v2/windows_manifest_dedup.csv
+for m in mfcc_cnn logmel_crnn transformer; do
+    mv ../reports/metrics/${m}_v2.json ../reports/metrics/${m}_v2_full.json
+done
+$PY 10_evaluate.py --arch mfcc_cnn --ckpt $CK/mfcc_cnn_v2.pt --tag mfcc_cnn_v2_leakfree --cpu-only \
+    --calibration $EX/mfcc_cnn/calibration.json --manifest $DEDUP --metrics-json ../reports/metrics/mfcc_cnn_v2.json
+$PY 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt $CK/logmel_crnn_v2.pt \
+    --tag logmel_crnn_v2_leakfree --cpu-only --calibration $EX/logmel_crnn/calibration.json \
+    --manifest $DEDUP --metrics-json ../reports/metrics/logmel_crnn_v2.json
+$PY 10_evaluate.py --arch transformer --ckpt $CK/transformer_v2.pt --tag transformer_v2_leakfree --cpu-only \
+    --calibration $EX/transformer/calibration.json --manifest $DEDUP --metrics-json ../reports/metrics/transformer_v2.json
+
 step "5/5 export one serving bundle per model"
 $PY 11_quantize_export.py quantize --arch logmel_crnn --hidden-size 128 --ckpt $CK/logmel_crnn_v2.pt \
     --out ../models/quantized/logmel_crnn_v2_quant.pt
