@@ -121,6 +121,7 @@ html, body {
   background: var(--surface-2); color: var(--text); font-size: 1rem; cursor: pointer;
 }
 .test-result { margin-top: 10px; font-size: 0.9rem; }
+.compare-link { display: inline-block; margin-top: 18px; text-decoration: none; }
 .test-result.ok { color: var(--safe); }
 .test-result.bad { color: var(--hazard); }
 

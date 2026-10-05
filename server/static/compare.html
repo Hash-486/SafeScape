@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SafeScape — Model Comparison</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/compare.css" />
+</head>
+<body class="compare">
+  <header class="topbar">
+    <span class="brand">SafeScape · Model Comparison</span>
+    <a class="back-link" href="/">&larr; Mobile app</a>
+  </header>
+
+  <main class="cmp-main">
+    <section id="input" class="panel">
+      <h2>1 · Input</h2>
+      <div class="input-row">
+        <button id="recBtn" class="secondary-button">&#9679; Record 2 s</button>
+        <label class="secondary-button file-btn">Upload audio
+          <input id="upload" type="file" accept="audio/*" hidden />
+        </label>
+        <select id="clipPick" class="text-input"><option value="">Held-out test clip…</option></select>
+        <audio id="player" controls></audio>
+      </div>
+      <p id="micNote" class="note"></p>
+      <p id="inputInfo" class="note"></p>
+    </section>
+
+    <section id="live" class="panel">
+      <h2>2 · Live comparison <span class="hint">same clip, every model</span></h2>
+      <div id="cards"></div>
+    </section>
+
+    <section id="uitest" class="panel">
+      <h2>3 · UI test run <span class="hint">20 held-out clips → all models, through the same HTTP path as the app</span></h2>
+      <button id="runAll" class="big-button small">Run all test clips</button>
+      <span id="progress" class="note"></span>
+      <table id="grid" class="cmp-table">
+        <thead></thead><tbody></tbody><tfoot></tfoot>
+      </table>
+    </section>
+
+    <section id="offline" class="panel">
+      <h2>4 · Offline test-set metrics <span class="hint" id="offlineHint"></span></h2>
+      <table id="metrics" class="cmp-table"></table>
+      <div id="bars"></div>
+      <div id="cms"></div>
+    </section>
+  </main>
+
+  <script src="/static/compare.js"></script>
+</body>
+</html>

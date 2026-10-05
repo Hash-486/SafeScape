@@ -1,0 +1,69 @@
+/* Desktop comparison dashboard; colours come from styles.css tokens. */
+.compare .back-link { color: var(--accent); text-decoration: none; font-size: 0.95rem; }
+
+.cmp-main { max-width: 1240px; margin: 0 auto; padding: 20px 24px 48px; }
+
+.panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 18px 20px; margin-bottom: 18px;
+}
+.panel h2 { font-size: 1.05rem; margin: 0 0 14px; }
+.panel h2 .hint { font-weight: 400; color: var(--text-dim); font-size: 0.85rem; margin-left: 8px; }
+
+.input-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.input-row .text-input { width: auto; min-width: 220px; margin: 0; padding: 12px; }
+.input-row audio { height: 40px; }
+.file-btn { display: inline-block; }
+.note { color: var(--text-dim); font-size: 0.88rem; margin: 10px 0 0; min-height: 1em; }
+#recBtn.recording { background: var(--hazard); border-color: var(--hazard); color: #fff; }
+#recBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+#cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.model-card {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+}
+.model-card.hazard { border-color: var(--hazard); background: var(--hazard-bg); }
+.model-card.safe { border-color: var(--safe); background: var(--safe-bg); }
+.mc-name { font-weight: 700; }
+.mc-owner { color: var(--text-dim); font-size: 0.82rem; margin-bottom: 12px; }
+.mc-label { font-size: 1.45rem; font-weight: 700; }
+.mc-conf { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 10px; }
+.mc-empty { color: var(--text-dim); font-size: 0.9rem; padding: 18px 0; }
+.badge { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+.badge.ok { background: var(--safe); color: #062; }
+.badge.bad { background: var(--hazard); color: #fff; }
+
+.prob { display: grid; grid-template-columns: 96px 1fr 44px; gap: 8px; align-items: center; font-size: 0.8rem; margin: 4px 0; }
+.prob .lbl { color: var(--text-dim); }
+.prob .val { text-align: right; color: var(--text-dim); }
+.bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--text-dim); }
+.bar > span.hz { background: var(--hazard); }
+.bar > span.sf { background: var(--safe); }
+.bar > span.top { background: var(--accent); }
+.mc-lat { margin-top: 10px; font-size: 0.82rem; color: var(--text-dim); }
+
+#runAll.small { width: auto; padding: 12px 22px; font-size: 1rem; border-radius: 12px; }
+#progress { margin-left: 12px; }
+
+.cmp-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.9rem; }
+.cmp-table th, .cmp-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.cmp-table th { color: var(--text-dim); font-weight: 600; }
+.cmp-table td.num, .cmp-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cmp-table td.ok { color: var(--safe); }
+.cmp-table td.bad { color: var(--hazard); }
+.cmp-table tfoot td { font-weight: 700; border-bottom: none; }
+.cmp-table .best { color: var(--accent); font-weight: 700; }
+
+#bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
+.metric-group h3 { font-size: 0.9rem; margin: 0 0 8px; color: var(--text-dim); font-weight: 600; }
+.metric-group .prob { grid-template-columns: 150px 1fr 52px; }
+
+#cms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
+#cms figure { margin: 0; background: #fff; border-radius: 10px; padding: 6px; }
+#cms img { width: 100%; display: block; }
+#cms figcaption { color: #333; font-size: 0.8rem; text-align: center; padding-top: 4px; }
+
+@media (max-width: 900px) {
+  #cards, #bars, #cms { grid-template-columns: 1fr; }
+}
