@@ -46,6 +46,8 @@ def main():
     ap.add_argument("--cpu-only", action="store_true", help="force CPU (matches serving target)")
     ap.add_argument("--calibration", default=None,
                     help="path to calibration.json; applies its per-class logit bias before argmax")
+    ap.add_argument("--quantized", action="store_true",
+                    help="--ckpt is a dynamic-int8 state dict (e.g. the served bundle); implies CPU")
     ap.add_argument("--manifest", default=str(MANIFEST),
                     help="windows manifest to take the test split from, e.g. windows_manifest_dedup.csv")
     ap.add_argument("--metrics-json", default=None,
@@ -56,14 +58,19 @@ def main():
     ckpt_path = args.ckpt or str(ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt")
     tag = args.tag or args.arch
 
-    device = torch.device("cpu") if args.cpu_only else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cpu") if args.cpu_only or args.quantized else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_ds = SafeScapeDataset(args.manifest, "test", feature_type=feature_type, augment=False)
     loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
     model_kwargs = {"hidden_size": args.hidden_size} if args.arch == "logmel_crnn" else {}
     model = build_model(args.arch, **model_kwargs).to(device)
-    state = torch.load(ckpt_path, map_location=device, weights_only=True)
+    if args.quantized:
+        import torch.nn as nn
+        model.eval()
+        model = torch.quantization.quantize_dynamic(model, {nn.Linear, nn.GRU}, dtype=torch.qint8)
+    # packed int8 GRU params can't load with weights_only=True; these are our own exports
+    state = torch.load(ckpt_path, map_location=device, weights_only=not args.quantized)
     model.load_state_dict(state)
     model.eval()
 
@@ -86,7 +93,8 @@ def main():
 
     sample_x, _ = test_ds[0]
     latency_ms = measure_latency_ms(model, sample_x, device)
-    n_params = sum(p.numel() for p in model.parameters())
+    # counted on a fresh fp32 build: int8-packed GRU/Linear weights are not nn.Parameters
+    n_params = sum(p.numel() for p in build_model(args.arch, **model_kwargs).parameters())
     size_bytes = Path(ckpt_path).stat().st_size
 
     # confusion matrix figure

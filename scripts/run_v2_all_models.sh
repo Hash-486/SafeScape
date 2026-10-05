@@ -53,8 +53,13 @@ for m in mfcc_cnn logmel_crnn transformer; do
 done
 $PY 10_evaluate.py --arch mfcc_cnn --ckpt $CK/mfcc_cnn_v2.pt --tag mfcc_cnn_v2_leakfree --cpu-only \
     --calibration $EX/mfcc_cnn/calibration.json --manifest $DEDUP --metrics-json ../reports/metrics/mfcc_cnn_v2.json
-$PY 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt $CK/logmel_crnn_v2.pt \
-    --tag logmel_crnn_v2_leakfree --cpu-only --calibration $EX/logmel_crnn/calibration.json \
+# the CRNN is served int8, so evaluate the served bundle rather than the fp32 checkpoint
+$PY 11_quantize_export.py quantize --arch logmel_crnn --hidden-size 128 --ckpt $CK/logmel_crnn_v2.pt \
+    --out ../models/quantized/logmel_crnn_v2_quant.pt
+$PY 11_quantize_export.py export --arch logmel_crnn --hidden-size 128 --quantized \
+    --quant-path ../models/quantized/logmel_crnn_v2_quant.pt --out-dir $EX/logmel_crnn
+$PY 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt $EX/logmel_crnn/best_model.pt --quantized \
+    --tag logmel_crnn_v2_int8_leakfree --calibration $EX/logmel_crnn/calibration.json \
     --manifest $DEDUP --metrics-json ../reports/metrics/logmel_crnn_v2.json
 $PY 10_evaluate.py --arch transformer --ckpt $CK/transformer_v2.pt --tag transformer_v2_leakfree --cpu-only \
     --calibration $EX/transformer/calibration.json --manifest $DEDUP --metrics-json ../reports/metrics/transformer_v2.json

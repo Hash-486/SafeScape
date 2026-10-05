@@ -1,21 +1,21 @@
 {
-  "tag": "logmel_crnn_v2_leakfree",
+  "tag": "logmel_crnn_v2_int8_leakfree",
   "arch": "logmel_crnn",
-  "accuracy": 0.8966555183946489,
-  "macro_f1": 0.8532079007465349,
-  "macro_recall": 0.8613045748263944,
-  "distress_recall": 0.8652094717668488,
+  "accuracy": 0.8969899665551839,
+  "macro_f1": 0.8519806459920438,
+  "macro_recall": 0.861668873551349,
+  "distress_recall": 0.8670309653916212,
   "per_class": {
     "distress_call": {
-      "precision": 0.8812615955473099,
-      "recall": 0.8652094717668488,
-      "f1-score": 0.8731617647058824,
+      "precision": 0.8831168831168831,
+      "recall": 0.8670309653916212,
+      "f1-score": 0.875,
       "support": 549.0
     },
     "glass_break": {
-      "precision": 0.6933333333333334,
+      "precision": 0.6753246753246753,
       "recall": 0.6842105263157895,
-      "f1-score": 0.6887417218543046,
+      "f1-score": 0.6797385620915033,
       "support": 76.0
     },
     "horn_skid": {
@@ -25,25 +25,25 @@
       "support": 144.0
     },
     "alarm": {
-      "precision": 0.9127625201938611,
+      "precision": 0.9142394822006472,
       "recall": 0.9216965742251223,
-      "f1-score": 0.9172077922077922,
+      "f1-score": 0.9179528838342811,
       "support": 613.0
     },
     "ambience": {
-      "precision": 0.9116541353383458,
+      "precision": 0.9122257053291536,
       "recall": 0.9048507462686567,
-      "f1-score": 0.9082397003745318,
+      "f1-score": 0.908523259444271,
       "support": 1608.0
     }
   },
   "confusion_matrix": [
     [
-      475,
+      476,
       2,
       0,
       4,
-      68
+      67
     ],
     [
       2,
@@ -67,16 +67,16 @@
       41
     ],
     [
-      57,
-      21,
+      56,
+      23,
       25,
-      50,
+      49,
       1455
     ]
   ],
-  "confusion_png": "reports/figures/logmel_crnn_v2_leakfree_confusion_matrix.png",
+  "confusion_png": "reports/figures/logmel_crnn_v2_int8_leakfree_confusion_matrix.png",
   "params": 499237,
-  "size_kb": 1958.2314453125,
-  "latency_ms": 6.895589999985532,
+  "size_kb": 516.1767578125,
+  "latency_ms": 12.806711000012001,
   "test_windows": 2990
 }

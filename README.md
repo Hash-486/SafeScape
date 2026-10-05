@@ -16,7 +16,7 @@ calibration. Per-class tables and confusion matrices: `reports/metrics/*_v2.json
 | architecture | owner | accuracy | macro-F1 | distress_call recall | served size | CPU latency / window |
 |---|---|---|---|---|---|---|
 | MFCC-CNN | Amruth Rohan KR | 79.2% | 0.725 | 80.3% | 249 KB | 0.52 ms |
-| **log-mel CRNN (champion)** | Harish Venkat VS | **89.7%** | **0.853** | **86.5%** | **516 KB** (int8) | 6.90 ms |
+| **log-mel CRNN (champion)** | Harish Venkat VS | **89.7%** | **0.852** | **86.7%** | **516 KB** (int8) | 12.81 ms |
 | Distilled Transformer | Harish Venkat VS | 83.8% | 0.774 | 82.5% | 340 KB | 0.48 ms |
 
 All three are served by the FastAPI app; the quantized CRNN is the default.

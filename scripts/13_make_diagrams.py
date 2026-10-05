@@ -143,7 +143,7 @@ def compare_diagram():
         ("MFCC-CNN", "#c08070", ["MFCC (40×101)", "4× Conv+BN+ReLU\n16→32→64→64", "AdaptiveAvgPool", "FC → 5"],
          "60,901 params · 248.5 KB · 0.52 ms · 79.2%"),
         ("log-mel CRNN", "#7aa87a", ["log-mel (64×101)", "2× Conv+BN+ReLU\n16→32", "BiGRU (128)", "mean-pool, FC → 5"],
-         "499,237 params · 516.4 KB int8 · 6.90 ms · 89.7%"),
+         "499,237 params · 516.2 KB int8 · 12.81 ms · 89.7%"),
         ("Tiny Transformer", "#9280b0", ["log-mel (64×101)", "Linear proj → 64\n+ CLS + pos-embed",
                                           "2× Encoder layer\n4 heads", "CLS → FC → 5"],
          "84,293 params · 339.0 KB · 0.48 ms · 83.8%"),

@@ -398,3 +398,20 @@ the running server scored 16/20 with all five classes represented.
 ![confusion matrix](reports\figures\transformer_v2_leakfree_confusion_matrix.png)
 
 ---
+### logmel_crnn_v2_int8_leakfree
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.883 | 0.867 | 0.875 | 549 |
+| glass_break | 0.675 | 0.684 | 0.680 | 76 |
+| horn_skid | 0.832 | 0.931 | 0.879 | 144 |
+| alarm | 0.914 | 0.922 | 0.918 | 613 |
+| ambience | 0.912 | 0.905 | 0.909 | 1608 |
+| **macro avg** | 0.843 | 0.862 | 0.852 | 2990 |
+| **accuracy** | | | 0.897 | |
+
+**accuracy:** 0.897 | **distress_call recall:** 0.867 | **params:** 499,237 | **size:** 516.2 KB | **CPU latency:** 12.81 ms/clip
+
+![confusion matrix](reports\figures\logmel_crnn_v2_int8_leakfree_confusion_matrix.png)
+
+---
