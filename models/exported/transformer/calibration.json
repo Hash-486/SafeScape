@@ -1,0 +1,20 @@
+{
+  "labels": [
+    "distress_call",
+    "glass_break",
+    "horn_skid",
+    "alarm",
+    "ambience"
+  ],
+  "bias": [
+    1.9000000000000035,
+    0.10000000000000187,
+    -0.899999999999999,
+    0.20000000000000195,
+    0.0
+  ],
+  "fitted_on": "val",
+  "objective": "safety",
+  "recall_tolerance": 0.02,
+  "arch": "transformer"
+}

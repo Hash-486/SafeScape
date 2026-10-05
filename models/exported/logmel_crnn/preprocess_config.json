@@ -1,0 +1,8 @@
+{
+  "model_name": "logmel_crnn",
+  "feature_type": "logmel",
+  "sample_rate": 16000,
+  "window_samples": 16000,
+  "quantized": true,
+  "hidden_size": 128
+}

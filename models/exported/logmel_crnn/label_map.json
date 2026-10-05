@@ -1,0 +1,7 @@
+{
+  "distress_call": 0,
+  "glass_break": 1,
+  "horn_skid": 2,
+  "alarm": 3,
+  "ambience": 4
+}

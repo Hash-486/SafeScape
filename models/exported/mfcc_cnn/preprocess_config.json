@@ -1,0 +1,8 @@
+{
+  "model_name": "mfcc_cnn",
+  "feature_type": "mfcc",
+  "sample_rate": 16000,
+  "window_samples": 16000,
+  "quantized": false,
+  "hidden_size": 64
+}
