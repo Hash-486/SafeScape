@@ -122,7 +122,7 @@ def crnn_diagram(hidden):
     for i in range(len(xs) - 1):
         arrow(ax, (xs[i] + bw, y + bh / 2), (xs[i + 1], y + bh / 2))
 
-    ax.text(5.0, 2.92, f"Champion architecture — log-mel CRNN  (499,237 params · 89.8% test accuracy)",
+    ax.text(5.0, 2.92, f"Champion architecture — log-mel CRNN  (499,237 params · 89.7% leak-free test accuracy)",
             ha="center", fontsize=13, fontweight="bold", color=INK)
     ax.text(5.0, 2.66, "pooling is frequency-only (2,1) so the full 101-frame time axis reaches the GRU",
             ha="center", fontsize=9, color=DIM, style="italic")
@@ -141,12 +141,12 @@ def compare_diagram():
     fig, ax = canvas(13, 4.6)
     rows = [
         ("MFCC-CNN", "#c08070", ["MFCC (40×101)", "4× Conv+BN+ReLU\n16→32→64→64", "AdaptiveAvgPool", "FC → 5"],
-         "60,901 params · 248.6 KB · 0.44 ms · 66.6%"),
+         "60,901 params · 248.5 KB · 0.52 ms · 79.2%"),
         ("log-mel CRNN", "#7aa87a", ["log-mel (64×101)", "2× Conv+BN+ReLU\n16→32", "BiGRU (128)", "mean-pool, FC → 5"],
-         "499,237 params · 516.4 KB int8 · 11.6 ms · 89.8%"),
+         "499,237 params · 516.4 KB int8 · 6.90 ms · 89.7%"),
         ("Tiny Transformer", "#9280b0", ["log-mel (64×101)", "Linear proj → 64\n+ CLS + pos-embed",
                                           "2× Encoder layer\n4 heads", "CLS → FC → 5"],
-         "84,293 params · 339.0 KB · 0.48 ms · 73.5%"),
+         "84,293 params · 339.0 KB · 0.48 ms · 83.8%"),
     ]
     bw, bh, gap = 1.76, 0.72, 1.90
     for r, (name, color, stages, stat) in enumerate(rows):
