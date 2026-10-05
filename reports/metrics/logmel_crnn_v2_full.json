@@ -1,0 +1,82 @@
+{
+  "tag": "logmel_crnn_v2_calibrated",
+  "arch": "logmel_crnn",
+  "accuracy": 0.8984472049689441,
+  "macro_f1": 0.8561333908180868,
+  "macro_recall": 0.8646426547990839,
+  "distress_recall": 0.8818998716302953,
+  "per_class": {
+    "distress_call": {
+      "precision": 0.914780292942743,
+      "recall": 0.8818998716302953,
+      "f1-score": 0.8980392156862745,
+      "support": 779.0
+    },
+    "glass_break": {
+      "precision": 0.6842105263157895,
+      "recall": 0.6842105263157895,
+      "f1-score": 0.6842105263157895,
+      "support": 76.0
+    },
+    "horn_skid": {
+      "precision": 0.8322981366459627,
+      "recall": 0.9305555555555556,
+      "f1-score": 0.8786885245901639,
+      "support": 144.0
+    },
+    "alarm": {
+      "precision": 0.9098228663446055,
+      "recall": 0.9216965742251223,
+      "f1-score": 0.9157212317666127,
+      "support": 613.0
+    },
+    "ambience": {
+      "precision": 0.9031657355679702,
+      "recall": 0.9048507462686567,
+      "f1-score": 0.9040074557315937,
+      "support": 1608.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      687,
+      3,
+      0,
+      6,
+      83
+    ],
+    [
+      2,
+      52,
+      0,
+      0,
+      22
+    ],
+    [
+      0,
+      0,
+      134,
+      0,
+      10
+    ],
+    [
+      5,
+      0,
+      2,
+      565,
+      41
+    ],
+    [
+      57,
+      21,
+      25,
+      50,
+      1455
+    ]
+  ],
+  "confusion_png": "reports/figures/logmel_crnn_v2_calibrated_confusion_matrix.png",
+  "params": 499237,
+  "size_kb": 1958.2314453125,
+  "latency_ms": 6.861127999982273,
+  "test_windows": 3220
+}

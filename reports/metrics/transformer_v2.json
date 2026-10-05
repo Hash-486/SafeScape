@@ -1,0 +1,82 @@
+{
+  "tag": "transformer_v2_leakfree",
+  "arch": "transformer",
+  "accuracy": 0.8377926421404682,
+  "macro_f1": 0.7741265000588519,
+  "macro_recall": 0.8110990159671235,
+  "distress_recall": 0.825136612021858,
+  "per_class": {
+    "distress_call": {
+      "precision": 0.7487603305785124,
+      "recall": 0.825136612021858,
+      "f1-score": 0.7850953206239168,
+      "support": 549.0
+    },
+    "glass_break": {
+      "precision": 0.3893129770992366,
+      "recall": 0.6710526315789473,
+      "f1-score": 0.4927536231884058,
+      "support": 76.0
+    },
+    "horn_skid": {
+      "precision": 0.8450704225352113,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8391608391608392,
+      "support": 144.0
+    },
+    "alarm": {
+      "precision": 0.8944805194805194,
+      "recall": 0.8988580750407831,
+      "f1-score": 0.8966639544344996,
+      "support": 613.0
+    },
+    "ambience": {
+      "precision": 0.8890374331550802,
+      "recall": 0.8271144278606966,
+      "f1-score": 0.8569587628865979,
+      "support": 1608.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      453,
+      4,
+      2,
+      7,
+      83
+    ],
+    [
+      7,
+      51,
+      1,
+      0,
+      17
+    ],
+    [
+      1,
+      0,
+      120,
+      1,
+      22
+    ],
+    [
+      12,
+      5,
+      1,
+      551,
+      44
+    ],
+    [
+      132,
+      71,
+      18,
+      57,
+      1330
+    ]
+  ],
+  "confusion_png": "reports/figures/transformer_v2_leakfree_confusion_matrix.png",
+  "params": 84293,
+  "size_kb": 338.8798828125,
+  "latency_ms": 0.47863400002825074,
+  "test_windows": 2990
+}

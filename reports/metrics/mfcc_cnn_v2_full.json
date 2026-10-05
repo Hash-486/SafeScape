@@ -1,0 +1,82 @@
+{
+  "tag": "mfcc_cnn_v2",
+  "arch": "mfcc_cnn",
+  "accuracy": 0.7984472049689441,
+  "macro_f1": 0.7325735087546048,
+  "macro_recall": 0.776681356397199,
+  "distress_recall": 0.8254172015404364,
+  "per_class": {
+    "distress_call": {
+      "precision": 0.7784503631961259,
+      "recall": 0.8254172015404364,
+      "f1-score": 0.8012461059190031,
+      "support": 779.0
+    },
+    "glass_break": {
+      "precision": 0.3221476510067114,
+      "recall": 0.631578947368421,
+      "f1-score": 0.4266666666666667,
+      "support": 76.0
+    },
+    "horn_skid": {
+      "precision": 0.8175182481751825,
+      "recall": 0.7777777777777778,
+      "f1-score": 0.797153024911032,
+      "support": 144.0
+    },
+    "alarm": {
+      "precision": 0.7694483734087695,
+      "recall": 0.8874388254486134,
+      "f1-score": 0.8242424242424242,
+      "support": 613.0
+    },
+    "ambience": {
+      "precision": 0.8736616702355461,
+      "recall": 0.7611940298507462,
+      "f1-score": 0.8135593220338984,
+      "support": 1608.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      643,
+      8,
+      0,
+      21,
+      107
+    ],
+    [
+      2,
+      48,
+      0,
+      0,
+      26
+    ],
+    [
+      12,
+      0,
+      112,
+      1,
+      19
+    ],
+    [
+      39,
+      4,
+      1,
+      544,
+      25
+    ],
+    [
+      130,
+      89,
+      24,
+      141,
+      1224
+    ]
+  ],
+  "confusion_png": "reports/figures/mfcc_cnn_v2_confusion_matrix.png",
+  "params": 60901,
+  "size_kb": 248.5244140625,
+  "latency_ms": 0.46757100000831997,
+  "test_windows": 3220
+}

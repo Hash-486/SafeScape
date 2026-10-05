@@ -296,3 +296,105 @@ the running server scored 16/20 with all five classes represented.
 ![confusion matrix](reports\figures\logmel_crnn_v2_calibrated_confusion_matrix.png)
 
 ---
+### mfcc_cnn_v2
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.778 | 0.825 | 0.801 | 779 |
+| glass_break | 0.322 | 0.632 | 0.427 | 76 |
+| horn_skid | 0.818 | 0.778 | 0.797 | 144 |
+| alarm | 0.769 | 0.887 | 0.824 | 613 |
+| ambience | 0.874 | 0.761 | 0.814 | 1608 |
+| **macro avg** | 0.712 | 0.777 | 0.733 | 3220 |
+| **accuracy** | | | 0.798 | |
+
+**accuracy:** 0.798 | **distress_call recall:** 0.825 | **params:** 60,901 | **size:** 248.5 KB | **CPU latency:** 0.47 ms/clip
+
+![confusion matrix](reports\figures\mfcc_cnn_v2_confusion_matrix.png)
+
+---
+### logmel_crnn_v2_calibrated
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.915 | 0.882 | 0.898 | 779 |
+| glass_break | 0.684 | 0.684 | 0.684 | 76 |
+| horn_skid | 0.832 | 0.931 | 0.879 | 144 |
+| alarm | 0.910 | 0.922 | 0.916 | 613 |
+| ambience | 0.903 | 0.905 | 0.904 | 1608 |
+| **macro avg** | 0.849 | 0.865 | 0.856 | 3220 |
+| **accuracy** | | | 0.898 | |
+
+**accuracy:** 0.898 | **distress_call recall:** 0.882 | **params:** 499,237 | **size:** 1958.2 KB | **CPU latency:** 6.86 ms/clip
+
+![confusion matrix](reports\figures\logmel_crnn_v2_calibrated_confusion_matrix.png)
+
+---
+### transformer_v2
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.811 | 0.837 | 0.824 | 779 |
+| glass_break | 0.381 | 0.671 | 0.486 | 76 |
+| horn_skid | 0.839 | 0.833 | 0.836 | 144 |
+| alarm | 0.893 | 0.899 | 0.896 | 613 |
+| ambience | 0.874 | 0.827 | 0.850 | 1608 |
+| **macro avg** | 0.760 | 0.813 | 0.778 | 3220 |
+| **accuracy** | | | 0.840 | |
+
+**accuracy:** 0.840 | **distress_call recall:** 0.837 | **params:** 84,293 | **size:** 338.9 KB | **CPU latency:** 0.53 ms/clip
+
+![confusion matrix](reports\figures\transformer_v2_confusion_matrix.png)
+
+---
+### mfcc_cnn_v2_leakfree
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.707 | 0.803 | 0.752 | 549 |
+| glass_break | 0.324 | 0.632 | 0.429 | 76 |
+| horn_skid | 0.818 | 0.778 | 0.797 | 144 |
+| alarm | 0.775 | 0.887 | 0.827 | 613 |
+| ambience | 0.888 | 0.761 | 0.820 | 1608 |
+| **macro avg** | 0.702 | 0.772 | 0.725 | 2990 |
+| **accuracy** | | | 0.792 | |
+
+**accuracy:** 0.792 | **distress_call recall:** 0.803 | **params:** 60,901 | **size:** 248.5 KB | **CPU latency:** 0.52 ms/clip
+
+![confusion matrix](reports\figures\mfcc_cnn_v2_leakfree_confusion_matrix.png)
+
+---
+### logmel_crnn_v2_leakfree
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.881 | 0.865 | 0.873 | 549 |
+| glass_break | 0.693 | 0.684 | 0.689 | 76 |
+| horn_skid | 0.832 | 0.931 | 0.879 | 144 |
+| alarm | 0.913 | 0.922 | 0.917 | 613 |
+| ambience | 0.912 | 0.905 | 0.908 | 1608 |
+| **macro avg** | 0.846 | 0.861 | 0.853 | 2990 |
+| **accuracy** | | | 0.897 | |
+
+**accuracy:** 0.897 | **distress_call recall:** 0.865 | **params:** 499,237 | **size:** 1958.2 KB | **CPU latency:** 6.90 ms/clip
+
+![confusion matrix](reports\figures\logmel_crnn_v2_leakfree_confusion_matrix.png)
+
+---
+### transformer_v2_leakfree
+
+| class | precision | recall | f1 | support |
+|---|---|---|---|---|
+| distress_call | 0.749 | 0.825 | 0.785 | 549 |
+| glass_break | 0.389 | 0.671 | 0.493 | 76 |
+| horn_skid | 0.845 | 0.833 | 0.839 | 144 |
+| alarm | 0.894 | 0.899 | 0.897 | 613 |
+| ambience | 0.889 | 0.827 | 0.857 | 1608 |
+| **macro avg** | 0.753 | 0.811 | 0.774 | 2990 |
+| **accuracy** | | | 0.838 | |
+
+**accuracy:** 0.838 | **distress_call recall:** 0.825 | **params:** 84,293 | **size:** 338.9 KB | **CPU latency:** 0.48 ms/clip
+
+![confusion matrix](reports\figures\transformer_v2_leakfree_confusion_matrix.png)
+
+---
