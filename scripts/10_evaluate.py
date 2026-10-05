@@ -46,6 +46,8 @@ def main():
     ap.add_argument("--cpu-only", action="store_true", help="force CPU (matches serving target)")
     ap.add_argument("--calibration", default=None,
                     help="path to calibration.json; applies its per-class logit bias before argmax")
+    ap.add_argument("--manifest", default=str(MANIFEST),
+                    help="windows manifest to take the test split from, e.g. windows_manifest_dedup.csv")
     ap.add_argument("--metrics-json", default=None,
                     help="also write the numbers as JSON for the dashboard and report builders")
     args = ap.parse_args()
@@ -56,7 +58,7 @@ def main():
 
     device = torch.device("cpu") if args.cpu_only else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    test_ds = SafeScapeDataset(MANIFEST, "test", feature_type=feature_type, augment=False)
+    test_ds = SafeScapeDataset(args.manifest, "test", feature_type=feature_type, augment=False)
     loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
     model_kwargs = {"hidden_size": args.hidden_size} if args.arch == "logmel_crnn" else {}
