@@ -5,17 +5,21 @@ windows into 5 classes: `distress_call`, `glass_break`, `horn_skid`, `alarm`, `a
 
 ## Results
 
-Three architectures trained and compared on an identical, source-file-disjoint
-70/15/15 split (test set: 2799 windows). Full per-class breakdown, confusion
-matrices, and discussion in [`reports/eval_results.md`](reports/eval_results.md).
+Three architectures trained and compared on the expanded (v2) dataset with one
+source-file-disjoint 70/15/15 split. 230 test windows turned out to be byte-identical
+to training audio (the Kaggle scream set ships duplicates), so every number below is on
+the remaining **leak-free test set of 2,990 windows** — see
+`scripts/18_flag_duplicate_sources.py`. Each model has its own safety-constrained
+calibration. Per-class tables and confusion matrices: `reports/metrics/*_v2.json`,
+[`reports/eval_results.md`](reports/eval_results.md) and the case study report.
 
-| architecture | test accuracy | distress_call recall | size (best) | CPU latency |
-|---|---|---|---|---|
-| MFCC-CNN | 66.6% | 66.7% | 249.3 KB | 1.05 ms |
-| **log-mel CRNN (champion)** | **84.5%** | **82.4%** | **516.4 KB** (quantized, -73.6%) | 89–138 ms |
-| Transformer (distilled) | 73.5% | 68.7% | 339.0 KB | 6.74 ms |
+| architecture | owner | accuracy | macro-F1 | distress_call recall | served size | CPU latency / window |
+|---|---|---|---|---|---|---|
+| MFCC-CNN | Amruth Rohan KR | 79.2% | 0.725 | 80.3% | 249 KB | 0.52 ms |
+| **log-mel CRNN (champion)** | Harish Venkat VS | **89.7%** | **0.853** | **86.5%** | **516 KB** (int8) | 6.90 ms |
+| Distilled Transformer | Harish Venkat VS | 83.8% | 0.774 | 82.5% | 340 KB | 0.48 ms |
 
-The quantized log-mel CRNN is the model exported and served by the FastAPI app.
+All three are served by the FastAPI app; the quantized CRNN is the default.
 
 ## Setup
 
@@ -41,18 +45,28 @@ the proposal's low-cost/on-device framing).
 6. `10_evaluate.py --arch <arch> --ckpt <path> --tag <name>` — test-set metrics, confusion
    matrix, latency, size; appends to `reports/eval_results.md`
 7. `11_quantize_export.py quantize --arch <arch>` then `... export --arch <arch> [--quantized]`
-   — dynamic PTQ (qint8) + exports the champion model bundle to `models/exported/`
+   — dynamic PTQ (qint8) + exports a model bundle (`--out-dir`)
+
+The v2 dataset rebuild is `bash scripts/run_v2_pipeline.sh` (CRNN) followed by
+`bash scripts/run_v2_all_models.sh` (MFCC-CNN + Transformer retrain, calibration of all
+three, leak-free evaluation, one bundle per model under `models/exported/<arch>/`).
+`17_make_ui_testset.py` cuts the 20 held-out clips in `demo_clips/test/`;
+`19_build_report.py` and `20_build_review_decks.py` regenerate the report and the
+Review 2 / Review 3 decks from the metrics.
 
 ## Serving + web app
 
 ```
-uvicorn server.app:app --host 0.0.0.0 --port 8000
+python run_demo.py            # starts uvicorn on 0.0.0.0:8124 and verifies it
 ```
 
-Open `http://<your-lan-ip>:8000` on a phone browser on the same Wi-Fi (or a resized
-desktop browser) for the mobile-styled web app (Home / History / Settings).
+- `http://127.0.0.1:8124/` — mobile-styled web app (Home / History / Settings)
+- `http://127.0.0.1:8124/compare` — comparison dashboard: one clip through all three
+  models side by side, a UI test run over the held-out clips, and the offline metrics
 
-`server/test_client.py` runs a one-clip-per-class smoke test against a running server.
+`/predict?model=<mfcc_cnn|logmel_crnn|transformer>` classifies with one model (CRNN by
+default); `/predict/all` with all three. Tests: `server/test_multi_model.py`,
+`server/test_clip_position.py`, and `server/test_client.py` against a running server.
 
 ## Data sources
 
@@ -75,8 +89,8 @@ emotion-coded angry/fearful clips) as a distress-adjacent supplement.
 
 ## Docs
 
-`docs/` holds the original case-study proposal and the review presentation template
-(course paperwork, not code). `data/` (raw + preprocessed audio, ~3.8GB) is not
+`docs/` holds the course paperwork: the proposal, the Review 1 / 2 / 3 decks and the
+case study report (`SafeScape_Case_Study_Report.docx`). `data/` (raw + preprocessed audio, ~3.8GB) is not
 tracked in git — regenerate it via `scripts/01_download_notes.md` and the
 `02`/`03` pipeline steps above.
 
