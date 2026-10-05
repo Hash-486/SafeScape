@@ -37,6 +37,9 @@ WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 ZEBRA = RGBColor(0xF6, 0xF1, 0xF1)
 
 OWNER = {"mfcc_cnn": "Amruth Rohan KR", "logmel_crnn": "Harish Venkat VS", "transformer": "Harish Venkat VS"}
+# shown on both title slides in place of the template's "[URL]"; None leaves it as is
+DEMO_URL = None
+
 ARCH_FIG = {"mfcc_cnn": "mfcc_cnn_architecture.png", "logmel_crnn": "crnn_architecture.png",
             "transformer": "transformer_architecture.png"}
 
@@ -50,6 +53,13 @@ def fresh_deck(review_label):
         prs.part.drop_rel(sld.rId)
         ids.remove(sld)
     title = prs.slides[0]
+    if DEMO_URL:
+        for shape in title.shapes:
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    for run in para.runs:
+                        if "[URL]" in run.text:
+                            run.text = run.text.replace("[URL]", DEMO_URL)
     tb = title.shapes.add_textbox(Inches(9.9), Inches(0.42), Inches(3.0), Inches(0.5))
     p = tb.text_frame.paragraphs[0]
     p.alignment = PP_ALIGN.RIGHT
@@ -323,7 +333,7 @@ def build_review2(M):
         ("body", "python run_demo.py  →  http://127.0.0.1:8124/compare  →  pick a held-out test clip; "
                  "each member's card shows their model's verdict, probabilities and latency."),
     ])
-    out = ROOT / "docs" / "SafeScape_Review2.pptx"
+    out = ROOT / "docs" / "Review2" / "SafeScape_Review2.pptx"
     prs.core_properties.title = "SafeScape — Review 2"
     prs.save(out)
     return out
@@ -429,7 +439,7 @@ def build_review3(M, grid):
         ("verdict", "Deliverables: working app + dashboard, three trained models, case study report, "
                     "code at github.com/Hash-486/SafeScape"),
     ])
-    out = ROOT / "docs" / "SafeScape_Review3.pptx"
+    out = ROOT / "docs" / "Review3" / "SafeScape_Review3.pptx"
     prs.core_properties.title = "SafeScape — Review 3"
     prs.save(out)
     return out

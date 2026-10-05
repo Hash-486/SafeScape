@@ -36,7 +36,7 @@ from utils.labels import LABELS
 
 FIG = ROOT / "reports" / "figures"
 METRICS = ROOT / "reports" / "metrics"
-OUT = ROOT / "docs" / "SafeScape_Case_Study_Report.docx"
+OUT = ROOT / "docs" / "Review3" / "SafeScape_Case_Study_Report.docx"
 PROC_V2 = ROOT / "data" / "processed_v2"
 
 TEAM = [("Amruth Rohan KR", "CB.EN.U4ECE23222", "MFCC-CNN"),

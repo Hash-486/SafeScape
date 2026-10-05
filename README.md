@@ -90,7 +90,8 @@ emotion-coded angry/fearful clips) as a distress-adjacent supplement.
 ## Docs
 
 `docs/` holds the course paperwork: the proposal, the Review 1 / 2 / 3 decks and the
-case study report (`SafeScape_Case_Study_Report.docx`). `data/` (raw + preprocessed audio, ~3.8GB) is not
+case study report — Review 2 material in `docs/Review2/`, Review 3 (deck, report,
+demo steps) in `docs/Review3/`. `data/` (raw + preprocessed audio, ~3.8GB) is not
 tracked in git — regenerate it via `scripts/01_download_notes.md` and the
 `02`/`03` pipeline steps above.
 
