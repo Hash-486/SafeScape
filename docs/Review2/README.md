@@ -7,7 +7,7 @@
 | member | model | checkpoint |
 |---|---|---|
 | Amruth Rohan KR | MFCC-CNN | `models/checkpoints/mfcc_cnn_v2.pt` |
-| Harish Venkat VS | log-mel CRNN | `models/checkpoints/logmel_crnn_v2.pt` |
+| Harish Venkat VS | log-mel CRNN | `models/exported/logmel_crnn/best_model.pt` (int8, as served) |
 | Harish Venkat VS | Distilled Transformer | `models/checkpoints/transformer_v2.pt` |
 
 ## Live demo
@@ -23,7 +23,7 @@ $D = "../data/processed_v2/windows_manifest_dedup.csv"
 ../.venv/Scripts/python.exe 10_evaluate.py --arch mfcc_cnn --ckpt ../models/checkpoints/mfcc_cnn_v2.pt --calibration ../models/exported/mfcc_cnn/calibration.json --manifest $D --cpu-only
 
 # Harish
-../.venv/Scripts/python.exe 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt ../models/checkpoints/logmel_crnn_v2.pt --calibration ../models/exported/logmel_crnn/calibration.json --manifest $D --cpu-only
+../.venv/Scripts/python.exe 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt ../models/exported/logmel_crnn/best_model.pt --quantized --calibration ../models/exported/logmel_crnn/calibration.json --manifest $D
 ../.venv/Scripts/python.exe 10_evaluate.py --arch transformer --ckpt ../models/checkpoints/transformer_v2.pt --calibration ../models/exported/transformer/calibration.json --manifest $D --cpu-only
 ```
 

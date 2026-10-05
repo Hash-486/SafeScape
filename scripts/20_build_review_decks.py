@@ -202,8 +202,8 @@ def s_split(prs, tag):
                  "folders. 230 test windows (all distress_call) were byte-identical to training audio."),
         ("body", "Fix without retraining: flag them (18_flag_duplicate_sources.py) and report every number "
                  "on the remaining 2,990 windows."),
-        ("verdict", "Impact was small (CRNN 89.8% → 89.7%), but every headline number is now on audio no "
-                    "model has heard."),
+        ("verdict", "Impact was small (CRNN 89.8% → 89.7%), and no test window has a byte-identical "
+                    "copy in training (exact-match check; re-encoded copies would not be caught)."),
     ])
 
 
@@ -323,9 +323,9 @@ def build_review2(M):
         ("body", "python 10_evaluate.py --arch mfcc_cnn --ckpt ../models/checkpoints/mfcc_cnn_v2.pt "
                  "--calibration ../models/exported/mfcc_cnn/calibration.json "
                  "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only        (Amruth)"),
-        ("body", "python 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt ../models/checkpoints/"
-                 "logmel_crnn_v2.pt --calibration ../models/exported/logmel_crnn/calibration.json "
-                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only        (Harish)"),
+        ("body", "python 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt ../models/exported/"
+                 "logmel_crnn/best_model.pt --quantized --calibration ../models/exported/logmel_crnn/calibration.json "
+                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv        (Harish)"),
         ("body", "python 10_evaluate.py --arch transformer --ckpt ../models/checkpoints/transformer_v2.pt "
                  "--calibration ../models/exported/transformer/calibration.json "
                  "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only        (Harish)"),
