@@ -363,8 +363,10 @@ def ch_dataset(doc, split):
          "folders. Because the split is by file path, 230 test windows — all distress_call — were byte-"
          "identical to recordings in the training or validation split. Rather than re-split and retrain "
          "every model, those windows are flagged (scripts/18_flag_duplicate_sources.py) and excluded: "
-         "every test number in this report is computed on the remaining 2,990 windows, which no model has "
-         "heard in any form. Validation retains 169 such windows; it is used only for checkpoint "
+         "every test number in this report is computed on the remaining 2,990 windows, none of which has "
+         "a byte-identical copy in training. The check is exact-match only: a trimmed or re-encoded copy "
+         "of the same recording (ESC-50, UrbanSound8K and the Freesound previews all draw on Freesound) "
+         "would not be caught. Validation retains 169 such windows; it is used only for checkpoint "
          "selection and calibration, and this is listed as a limitation.")
     table(doc, ["class", "train", "val", "test (leak-free)", "removed from test"],
           [[l, int(split.loc[l, "train"]), int(split.loc[l, "val"]), int(split.loc[l, "test"]),
@@ -487,7 +489,8 @@ def ch_results(doc, M):
     doc.add_heading("6. Results and Comparison", level=1)
     n = M["logmel_crnn"]["test_windows"]
     para(doc, f"All figures are on the leak-free held-out test split ({n:,} windows), with each model's "
-              "safety-constrained calibration applied. Latency is the mean time for one 1 s window on "
+              "safety-constrained calibration applied. Every row is the exact file the server loads, so the "
+              "CRNN figures are for its int8 version. Latency is the mean time for one 1 s window on "
               "the CPU, batch size 1.")
     table(doc, ["model", "owner", "accuracy", "macro-F1", "macro recall", "distress recall", "params",
                 "served size", "CPU latency"],
@@ -534,7 +537,7 @@ def ch_uitest(doc, grid):
     doc.add_heading("7. UI Testing with the Deep Learning Models", level=1)
     para(doc,
          "The user interface was tested against all three models with twenty clips — four per class — "
-         "cut from test-split recordings that the duplicate audit confirmed no model has heard. Each clip "
+         "cut from test-split recordings with no byte-identical copy in training. Each clip "
          "is the two seconds around the loudest second of its source, the same length the app records. "
          "The table below is produced by running the served bundles on those clips; the dashboard's test "
          "run produces the same grid through HTTP.")
@@ -600,7 +603,7 @@ def ch_conclusion(doc, M):
     para(doc,
          "SafeScape shows that a small, fully offline model can recognise acoustic hazards with useful "
          f"accuracy. The log-mel CRNN reached {pct(c['accuracy'])} accuracy and "
-         f"{pct(c['distress_recall'])} distress-call recall on audio no model had heard, in "
+         f"{pct(c['distress_recall'])} distress-call recall on held-out audio, in "
          f"{bundle_kb('logmel_crnn'):.0f} KB after quantization. The comparison suggests that, for short "
          "acoustic events, keeping the time axis and modelling it explicitly matters more than raw model "
          "size, and that data coverage of the rare classes mattered more than any architectural change. "

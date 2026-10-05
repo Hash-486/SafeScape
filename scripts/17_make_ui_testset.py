@@ -20,7 +20,7 @@ from utils.labels import LABELS
 from utils.paths import ROOT, WINDOWS_MANIFEST
 
 # 18_flag_duplicate_sources.py's output: test windows whose audio is also in train/val
-# are split=test_dup there, so sampling split=test picks only audio no model has heard
+# are split=test_dup there, so sampling split=test never picks a byte-identical copy of training audio
 DEDUP_MANIFEST = WINDOWS_MANIFEST.with_name("windows_manifest_dedup.csv")
 
 PER_CLASS = 4

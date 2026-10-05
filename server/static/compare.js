@@ -163,7 +163,7 @@
   function renderOffline() {
     const evald = MODELS.filter((m) => m.metrics);
     const n = evald[0] ? evald[0].metrics.test_windows : 0;
-    $("offlineHint").textContent = n ? `held-out test split, ${n} windows, never seen in training` : "";
+    $("offlineHint").textContent = n ? `held-out test split, ${n} windows, no byte-identical copy in training` : "";
     const best = (f, lower) => {
       const vals = evald.map((m) => f(m));
       return lower ? Math.min(...vals) : Math.max(...vals);
