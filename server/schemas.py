@@ -6,6 +6,12 @@ class PredictResponse(BaseModel):
     confidence: float
     is_hazard: bool
     probabilities: dict[str, float]
+    model_name: str
+    latency_ms: float
+
+
+class PredictAllResponse(BaseModel):
+    results: dict[str, PredictResponse]
 
 
 class HealthResponse(BaseModel):

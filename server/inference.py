@@ -15,10 +15,12 @@ from scripts.utils.models import build_model
 from scripts.utils.labels import LABELS, HAZARD_LABELS
 
 EXPORTED_DIR = ROOT / "models" / "exported"
+# one bundle per key under models/exported/<key>/ (scripts/run_v2_all_models.sh)
+MODELS = {"mfcc_cnn": "MFCC-CNN", "logmel_crnn": "log-mel CRNN", "transformer": "Distilled Transformer"}
 
 
 class Predictor:
-    def __init__(self, exported_dir=EXPORTED_DIR):
+    def __init__(self, exported_dir=EXPORTED_DIR / "logmel_crnn"):
         exported_dir = Path(exported_dir)
         with open(exported_dir / "label_map.json") as f:
             self.label_map = json.load(f)
@@ -107,4 +109,5 @@ class Predictor:
             "confidence": float(probs[idx]),
             "is_hazard": label in HAZARD_LABELS,
             "probabilities": {LABELS[i]: float(probs[i]) for i in range(len(LABELS))},
+            "model_name": self.model_name,
         }
