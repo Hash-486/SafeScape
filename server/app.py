@@ -40,6 +40,14 @@ def get_predictor(key=DEFAULT_MODEL):
     return _predictors[key]
 
 
+@app.on_event("startup")
+def warm_up():
+    # the first predict pays for model load and noisereduce's first call (~1.3s); do it
+    # here so the dashboard's latency figures show inference, not cold start
+    for key in MODELS:
+        get_predictor(key).predict(np.random.default_rng(0).normal(0, 0.1, 16000).astype(np.float32), 16000)
+
+
 def timed_predict(key, y, sr):
     p = get_predictor(key)
     t0 = time.perf_counter()
