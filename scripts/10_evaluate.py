@@ -46,6 +46,8 @@ def main():
     ap.add_argument("--cpu-only", action="store_true", help="force CPU (matches serving target)")
     ap.add_argument("--calibration", default=None,
                     help="path to calibration.json; applies its per-class logit bias before argmax")
+    ap.add_argument("--metrics-json", default=None,
+                    help="also write the numbers as JSON for the dashboard and report builders")
     args = ap.parse_args()
 
     feature_type = ARCH_TO_FEATURE[args.arch]
@@ -117,6 +119,26 @@ def main():
           f"distress_recall={report['distress_call']['recall']:.3f} "
           f"params={n_params} size_kb={size_bytes/1024:.1f} latency_ms={latency_ms:.2f}")
     print(f"appended results to {out_path}")
+
+    if args.metrics_json:
+        import json
+        out = Path(args.metrics_json)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "w") as f:
+            json.dump({
+                "tag": tag, "arch": args.arch,
+                "accuracy": accuracy,
+                "macro_f1": report["macro avg"]["f1-score"],
+                "macro_recall": report["macro avg"]["recall"],
+                "distress_recall": report["distress_call"]["recall"],
+                "per_class": {l: {k: report[l][k] for k in ("precision", "recall", "f1-score", "support")}
+                              for l in LABELS},
+                "confusion_matrix": cm.tolist(),
+                "confusion_png": fig_path.relative_to(ROOT).as_posix(),
+                "params": n_params, "size_kb": size_bytes / 1024, "latency_ms": latency_ms,
+                "test_windows": len(test_ds),
+            }, f, indent=2)
+        print(f"wrote {out}")
 
 
 if __name__ == "__main__":
