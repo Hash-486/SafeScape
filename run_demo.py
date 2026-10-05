@@ -129,21 +129,19 @@ def main():
     print(paint("dim", f"  {ROOT}"))
 
     # ---- 1. preflight -------------------------------------------------------
-    step(1, "Checking the exported model bundle")
-    bundle = ROOT / "models" / "exported"
-    missing = [f for f in ("best_model.pt", "label_map.json", "preprocess_config.json")
-               if not (bundle / f).exists()]
-    if missing:
-        fail(f"missing from models/exported: {', '.join(missing)}")
-        print("\n    Re-export with: python scripts/11_quantize_export.py")
-        return 1
-    cfg = json.loads((bundle / "preprocess_config.json").read_text())
-    ok(f"{cfg['model_name']}, quantized={cfg.get('quantized', False)}, "
-       f"{(bundle / 'best_model.pt').stat().st_size // 1024} KB")
-    if (bundle / "calibration.json").exists():
-        ok("calibration.json present")
-    else:
-        warn("no calibration.json -- predictions will be uncalibrated")
+    step(1, "Checking the exported model bundles")
+    for key in ("mfcc_cnn", "logmel_crnn", "transformer"):
+        bundle = ROOT / "models" / "exported" / key
+        missing = [f for f in ("best_model.pt", "label_map.json", "preprocess_config.json")
+                   if not (bundle / f).exists()]
+        if missing:
+            fail(f"missing from models/exported/{key}: {', '.join(missing)}")
+            print("\n    Re-export with: bash scripts/run_v2_all_models.sh")
+            return 1
+        cfg = json.loads((bundle / "preprocess_config.json").read_text())
+        ok(f"{key:<12} quantized={cfg.get('quantized', False)}, "
+           f"{(bundle / 'best_model.pt').stat().st_size // 1024} KB"
+           + ("" if (bundle / "calibration.json").exists() else "  (no calibration.json)"))
 
     # ---- 2. port ------------------------------------------------------------
     step(2, f"Checking port {args.port}")
@@ -195,7 +193,8 @@ def main():
 
     try:
         # ---- 5. warm + verify -----------------------------------------------
-        clips = ROOT / "demo_clips"
+        # held-out test clips (scripts/17_make_ui_testset.py), not training audio
+        clips = ROOT / "demo_clips" / "test"
         predict = f"http://127.0.0.1:{args.port}/predict"
 
         if args.skip_verify:
@@ -204,12 +203,10 @@ def main():
             warn("demo_clips/ not found -- skipping the per-class check")
         else:
             step(5, "Warming the model and verifying every class")
-            # The predictor is a lazy singleton: the model loads on the first
-            # prediction, not at startup. Doing it here keeps the live demo fast.
             passed = 0
             checked = 0
             for name in CLASSES:
-                wav = clips / f"{name}.wav"
+                wav = clips / f"{name}_1.wav"
                 if not wav.exists():
                     warn(f"{name:<14} no clip in demo_clips/")
                     continue
@@ -239,6 +236,8 @@ def main():
         print(bar)
         print(f"  Laptop UI  {paint('bold', f'http://127.0.0.1:{args.port}/')}")
         print(paint("dim", "             microphone works here (localhost is a secure context)"))
+        print(f"  Compare    {paint('bold', f'http://127.0.0.1:{args.port}/compare')}")
+        print(paint("dim", "             all three models side by side + UI test run"))
         if ip and args.host == "0.0.0.0":
             print(f"  Phone API  http://{ip}:{args.port}/health")
             print(paint("dim", "             API only -- the browser blocks the mic over plain HTTP"))
