@@ -16,10 +16,7 @@ from torch.utils.data import DataLoader
 from utils.dataset import SafeScapeDataset, class_weights
 from utils.models import build_model
 from utils.metrics import macro_recall
-
-ROOT = Path(__file__).resolve().parent.parent
-MANIFEST = ROOT / "data" / "processed" / "windows_manifest.csv"
-TEACHER_CKPT = ROOT / "models" / "checkpoints" / "logmel_crnn_best.pt"
+from utils.paths import ROOT, WINDOWS_MANIFEST as MANIFEST
 
 
 def distill_loss(student_logits, teacher_logits, targets, alpha, T, class_weights=None):
@@ -41,13 +38,17 @@ def main():
     ap.add_argument("--temperature", type=float, default=4.0)
     ap.add_argument("--patience", type=int, default=6)
     ap.add_argument("--teacher-hidden-size", type=int, default=128, help="must match the trained CRNN's winning hparam config")
+    ap.add_argument("--teacher", default=str(ROOT / "models" / "checkpoints" / "logmel_crnn_best.pt"))
+    ap.add_argument("--ckpt", default=str(ROOT / "models" / "checkpoints" / "transformer_best.pt"))
+    ap.add_argument("--log-csv", default=str(ROOT / "reports" / "transformer_train_log.csv"))
     args = ap.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    assert TEACHER_CKPT.exists(), f"train logmel_crnn first — missing teacher checkpoint {TEACHER_CKPT}"
+    teacher_ckpt = Path(args.teacher)
+    assert teacher_ckpt.exists(), f"train logmel_crnn first — missing teacher checkpoint {teacher_ckpt}"
 
     teacher = build_model("logmel_crnn", hidden_size=args.teacher_hidden_size).to(device)
-    teacher.load_state_dict(torch.load(TEACHER_CKPT, map_location=device, weights_only=True))
+    teacher.load_state_dict(torch.load(teacher_ckpt, map_location=device, weights_only=True))
     teacher.eval()
     for p in teacher.parameters():
         p.requires_grad_(False)
@@ -64,8 +65,8 @@ def main():
 
     best_recall, best_state, no_improve = -1.0, None, 0
     log_rows = []
-    ckpt_path = ROOT / "models" / "checkpoints" / "transformer_best.pt"
-    log_csv_path = ROOT / "reports" / "transformer_train_log.csv"
+    ckpt_path = Path(args.ckpt)
+    log_csv_path = Path(args.log_csv)
 
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()

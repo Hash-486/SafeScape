@@ -41,7 +41,7 @@ def cmd_quantize(args):
     model.eval()
 
     qmodel = torch.quantization.quantize_dynamic(model, QUANT_MODULES, dtype=torch.qint8)
-    out_path = ROOT / "models" / "quantized" / f"{args.arch}_quant.pt"
+    out_path = Path(args.out) if args.out else ROOT / "models" / "quantized" / f"{args.arch}_quant.pt"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(qmodel.state_dict(), out_path)
 
@@ -54,7 +54,7 @@ def cmd_quantize(args):
 
 def cmd_export(args):
     if args.quantized:
-        weights_path = ROOT / "models" / "quantized" / f"{args.arch}_quant.pt"
+        weights_path = Path(args.quant_path) if args.quant_path else ROOT / "models" / "quantized" / f"{args.arch}_quant.pt"
         model = build_quantized(args.arch, args.hidden_size)
     else:
         weights_path = Path(args.ckpt) if args.ckpt else ROOT / "models" / "checkpoints" / f"{args.arch}_best.pt"
@@ -66,7 +66,7 @@ def cmd_export(args):
     state = torch.load(weights_path, map_location="cpu", weights_only=not args.quantized)
     model.load_state_dict(state)
 
-    export_dir = ROOT / "models" / "exported"
+    export_dir = Path(args.out_dir)
     export_dir.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), export_dir / "best_model.pt")
 
@@ -95,6 +95,7 @@ def main():
     p1.add_argument("--arch", required=True, choices=["mfcc_cnn", "logmel_crnn", "transformer"])
     p1.add_argument("--hidden-size", type=int, default=64, help="only used by logmel_crnn")
     p1.add_argument("--ckpt", default=None, help="fp32 checkpoint to quantize")
+    p1.add_argument("--out", default=None)
     p1.set_defaults(func=cmd_quantize)
 
     p2 = sub.add_parser("export")
@@ -102,6 +103,8 @@ def main():
     p2.add_argument("--quantized", action="store_true")
     p2.add_argument("--hidden-size", type=int, default=64, help="only used by logmel_crnn")
     p2.add_argument("--ckpt", default=None, help="fp32 checkpoint to export (ignored with --quantized)")
+    p2.add_argument("--quant-path", default=None, help="quantized weights to export (with --quantized)")
+    p2.add_argument("--out-dir", default=str(ROOT / "models" / "exported"))
     p2.set_defaults(func=cmd_export)
 
     args = ap.parse_args()
