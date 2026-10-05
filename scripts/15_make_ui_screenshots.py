@@ -9,7 +9,7 @@ from pathlib import Path
 
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 SERVER = "http://127.0.0.1:8124"
-OUT = Path(__file__).parent
+OUT = Path(__file__).resolve().parent.parent / "reports" / "figures"
 
 HEAD = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -77,4 +77,16 @@ for name, html in [("ui_home_hazard", HOME), ("ui_home_listening", HOME_IDLE),
     subprocess.run([EDGE, "--headless=new", "--disable-gpu", "--hide-scrollbars",
                     f"--screenshot={png}", "--window-size=500,900",
                     "--virtual-time-budget=4000", src.as_uri()], check=True, timeout=120)
+    src.unlink()
+    print(f"{png.name}: {png.stat().st_size if png.exists() else 'MISSING'} bytes")
+
+# The comparison dashboard renders live from the server: ?demo=... in compare.js drives
+# it hands-free (headless Edge cannot click), so these shots are real model output.
+for name, query, height in [("ui_compare_live", "demo=clip&n=4", 1150),
+                            ("ui_compare_uitest", "demo=runall", 1060),
+                            ("ui_compare_offline", "demo=offline", 880)]:
+    png = OUT / f"{name}.png"
+    subprocess.run([EDGE, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+                    f"--screenshot={png}", f"--window-size=1440,{height}",
+                    "--virtual-time-budget=90000", f"{SERVER}/compare?{query}"], check=True, timeout=240)
     print(f"{png.name}: {png.stat().st_size if png.exists() else 'MISSING'} bytes")
