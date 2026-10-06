@@ -31,6 +31,6 @@ upload and test clips work anywhere.
 
 ```
 .venv/Scripts/python.exe server/test_multi_model.py     # all models, held-out clips + edge inputs
-.venv/Scripts/python.exe server/test_clip_position.py   # hazard position in clip (1 known ambience failure, see report §8)
+.venv/Scripts/python.exe server/test_clip_position.py   # sound in first vs second half of a clip, every class
 .venv/Scripts/python.exe server/test_client.py          # against the running server
 ```

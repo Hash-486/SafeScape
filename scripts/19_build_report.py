@@ -46,6 +46,9 @@ COURSE = "23CSE473 — Neural Networks and Deep Learning"
 ACCENT = RGBColor(0xC0, 0x00, 0x00)
 
 SHORT = {"mfcc_cnn": "MFCC-CNN", "logmel_crnn": "CRNN", "transformer": "Transformer"}
+# the v1 dataset's MFCC-CNN result (reports/eval_results.md, mfcc_cnn_fp32); that split no
+# longer exists to re-evaluate on, so it is quoted rather than computed
+V1_MFCC_ACC = 0.666
 
 
 # ----------------------------------------------------------------------------- data
@@ -68,6 +71,17 @@ def ui_test_grid():
         grid.append((r["file"], r["label"],
                      {k: p.predict(y.copy(), sr)["predicted_class"] for k, p in preds.items()}))
     return grid
+
+
+def hazard_misses(grid):
+    """(clip, model, predicted) for every hazard clip a model got wrong."""
+    return [(f, k, got[k]) for f, lab, got in grid if lab != "ambience" for k in MODELS if got[k] != lab]
+
+
+def epochs_run(key):
+    log = {"mfcc_cnn": "mfcc_cnn_v2_train_log.csv", "logmel_crnn": "logmel_crnn_v2_train_log.csv",
+           "transformer": "transformer_v2_train_log.csv"}[key]
+    return len(pd.read_csv(ROOT / "reports" / log))
 
 
 def training_curves():
@@ -523,7 +537,7 @@ def ch_results(doc, M):
     para(doc,
          f"The MFCC-CNN is the smallest and fastest model ({m['params']:,} parameters, "
          f"{m['latency_ms']:.2f} ms). It also gained the most from the expanded dataset: its accuracy "
-         "was 66.6% on the first dataset version and is now " f"{pct(m['accuracy'])}" ". The two test "
+         f"was {pct(V1_MFCC_ACC)} on the first dataset version and is now {pct(m['accuracy'])}. The two test "
          "splits differ, so the comparison is indicative, but it suggests the earlier results were "
          "limited by data more than by the architecture.")
     para(doc,
@@ -548,21 +562,23 @@ def ch_uitest(doc, grid):
           caption="Table 7.1 — UI test results (held-out clips)")
     doc.add_heading("7.1 Functional and edge-case tests", level=2)
     table(doc, ["test", "expected", "result"],
-          [["Hazard in the first or second half of a clip, silence in the other", "hazard detected",
-            "pass for all four hazard classes (server/test_clip_position.py)"],
-           ["Ambience followed by one second of silence", "ambience",
-            "fail — distress_call (0.77); identical with the earlier model, see Section 8"],
+          [["Each class's loudest second in the first or second half of a 2 s clip, silence in the "
+            "other", "same class either way", "pass for all five classes (server/test_clip_position.py)"],
            ["Two seconds of silence", "ambience from every model", "pass (server/test_multi_model.py)"],
            ["0.33 s clip", "every model answers", "pass (server/test_multi_model.py)"],
            ["Unknown model key", "HTTP 404, server keeps running", "pass"],
+           ["One model's bundle missing", "the other models keep serving", "pass — HTTP 503 for that model only"],
            ["Dashboard opened without microphone access", "record disabled with reason; upload and test "
             "clips still work", "pass"],
            ["Existing mobile app against the new server", "unchanged behaviour on /predict", "pass "
             "(server/test_client.py)"]],
           caption="Table 7.2 — Functional tests")
+    misses = hazard_misses(grid)
+    n_hazard = sum(lab != "ambience" for _, lab, _ in grid)
+    missed = "; ".join(f"{f} → {got} by the {MODELS[k]}" for f, k, got in misses) or "none"
     para(doc,
-         "Every model recognised all sixteen hazard clips except one horn clip that the MFCC-CNN "
-         "called a distress call. The failures are concentrated in ambience. This is the cost of the "
+         f"Of {n_hazard * len(MODELS)} model-by-clip decisions on hazard clips, {len(misses)} {'was' if len(misses) == 1 else 'were'} wrong "
+         f"({missed}). The remaining failures are in ambience. This is the cost of the "
          "serving rule in Section 4.8, which lets any single window classified as a hazard decide the "
          "whole clip: a deliberate bias towards false alarms over missed events. The test clips also make "
          "it harder than everyday use, because each one is cut around the loudest second of its "
@@ -583,9 +599,10 @@ def ch_limits(doc):
         "169 validation windows still duplicate training audio; re-splitting on content hashes and "
         "retraining would remove the last of the leak.",
         "glass_break remains the thinnest class (597 windows) and the hardest one to get right.",
-        "Ambience followed by silence is misread as distress_call. The earlier model behaves the same, "
-        "which points at pre-processing rather than the retrained weights; a likely cause, not yet "
-        "confirmed, is per-window standardisation stretching the quiet tail to unit variance.",
+        "During development, one quiet ambience recording from the training data, followed by a second "
+        "of silence, was misread as distress_call by both the earlier and the current CRNN (the held-out "
+        "ambience clip passes the same test). A likely cause, not yet confirmed, is per-window "
+        "standardisation stretching a quiet tail to unit variance.",
         "The any-hazard-window rule favours recall over precision; requiring agreement between "
         "consecutive windows would cut false alarms on busy background sound.",
         "Inference runs on a laptop server reachable over the LAN, not on the phone itself; exporting "

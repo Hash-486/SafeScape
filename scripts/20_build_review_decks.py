@@ -10,8 +10,8 @@ rebuilt here in the same style. Numbers come from the same places as the report
 
 Usage (from the repo root): .venv/Scripts/python.exe scripts/20_build_review_decks.py
 """
-import copy
 import importlib
+import json
 import sys
 from pathlib import Path
 
@@ -184,7 +184,7 @@ def s_dataset(prs, tag):
     ])
 
 
-def s_split(prs, tag):
+def s_split(prs, M, tag):
     _, split = report.dataset_tables()
     s = new_slide(prs, "Dataset — leakage-free split and duplicate audit", tag)
     table(s, ["class", "train", "val", "test (leak-free)", "removed from test"],
@@ -202,7 +202,8 @@ def s_split(prs, tag):
                  "folders. 230 test windows (all distress_call) were byte-identical to training audio."),
         ("body", "Fix without retraining: flag them (18_flag_duplicate_sources.py) and report every number "
                  "on the remaining 2,990 windows."),
-        ("verdict", "Impact was small (CRNN 89.8% → 89.7%), and no test window has a byte-identical "
+        ("verdict", f"Impact was small (CRNN {pct(json.loads((report.METRICS / 'logmel_crnn_v2_full.json').read_text())['accuracy'])} "
+                    f"on the full test set, {pct(M['logmel_crnn']['accuracy'])} without them), and no test window has a byte-identical "
                     "copy in training (exact-match check; re-encoded copies would not be caught)."),
     ])
 
@@ -227,11 +228,11 @@ def s_model(prs, k, M, tag):
     s = new_slide(prs, f"{MODELS[k]} — {OWNER[k]}", tag)
     picture(s, FIG / ARCH_FIG[k], 0.6, 0.95, 12.1, 2.55)
     hp = {"mfcc_cnn": [("learning rate", "1.25e-3"), ("batch / dropout", "64 / 0.25"),
-                       ("selection", "Optuna, val macro recall"), ("epochs", "25, early stop at 17")],
+                       ("selection", "Optuna, val macro recall"), ("epochs", f"25, early stop at {report.epochs_run('mfcc_cnn')}")],
           "logmel_crnn": [("learning rate", "8.56e-4"), ("batch / dropout", "16 / 0.27"),
-                          ("GRU", "128 units × 2 directions"), ("compression", "dynamic int8 → 516 KB")],
+                          ("GRU", "128 units × 2 directions"), ("compression", f"dynamic int8 → {bundle_kb('logmel_crnn'):.0f} KB")],
           "transformer": [("teacher", "v2 CRNN (frozen)"), ("α / T", "0.5 / 4"),
-                          ("learning rate / batch", "1e-3 / 32"), ("epochs", "25, early stop at 20")]}[k]
+                          ("learning rate / batch", "1e-3 / 32"), ("epochs", f"25, early stop at {report.epochs_run('transformer')}")]}[k]
     table(s, ["hyper-parameter", "value"], [list(r) for r in hp], 0.6, 3.75, 4.6, col_w=[2.0, 2.6], fs=11)
     table(s, ["class", "precision", "recall", "F1"],
           [[l, f"{m['per_class'][l]['precision']:.2f}", f"{m['per_class'][l]['recall']:.2f}",
@@ -309,7 +310,7 @@ def build_review2(M):
         ("bullet", "Each model is calibrated the same way, so they are compared at equivalent operating points"),
     ])
     s_dataset(prs, tag)
-    s_split(prs, tag)
+    s_split(prs, M, tag)
     s_features(prs, tag)
     for k in MODELS:
         s_model(prs, k, M, tag)
@@ -322,13 +323,13 @@ def build_review2(M):
         ("body", "cd scripts;  $env:SAFESCAPE_PROC_DIR = \"data/processed_v2\""),
         ("body", "python 10_evaluate.py --arch mfcc_cnn --ckpt ../models/checkpoints/mfcc_cnn_v2.pt "
                  "--calibration ../models/exported/mfcc_cnn/calibration.json "
-                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only        (Amruth)"),
+                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only --no-log        (Amruth)"),
         ("body", "python 10_evaluate.py --arch logmel_crnn --hidden-size 128 --ckpt ../models/exported/"
                  "logmel_crnn/best_model.pt --quantized --calibration ../models/exported/logmel_crnn/calibration.json "
-                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv        (Harish)"),
+                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --no-log        (Harish)"),
         ("body", "python 10_evaluate.py --arch transformer --ckpt ../models/checkpoints/transformer_v2.pt "
                  "--calibration ../models/exported/transformer/calibration.json "
-                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only        (Harish)"),
+                 "--manifest ../data/processed_v2/windows_manifest_dedup.csv --cpu-only --no-log        (Harish)"),
         ("heading", "THEN THE SAME MODEL ON A SINGLE CLIP"),
         ("body", "python run_demo.py  →  http://127.0.0.1:8124/compare  →  pick a held-out test clip; "
                  "each member's card shows their model's verdict, probabilities and latency."),
@@ -374,13 +375,14 @@ def build_review3(M, grid):
     s = new_slide(prs, "UI testing — 20 held-out clips through the interface", tag)
     picture(s, FIG / "ui_compare_uitest.png", 0.5, 0.95, 6.6, 5.6)
     correct = {k: sum(g[2][k] == g[1] for g in grid) for k in MODELS}
+    n_haz = sum(g[1] != "ambience" for g in grid) * len(MODELS)
     per_cls = [[l] + [f"{sum(g[2][k] == l for g in grid if g[1] == l)}/4" for k in MODELS] for l in LABELS]
     table(s, ["class", "MFCC-CNN", "CRNN", "Transformer"],
           per_cls + [["total"] + [f"{correct[k]}/{len(grid)}" for k in MODELS]],
           7.4, 1.05, 5.3, col_w=[1.7, 1.2, 1.2, 1.2], fs=11.5)
     text(s, 7.4, 3.5, 5.3, 3.0, [
         ("heading", "WHAT THE TEST SHOWS"),
-        ("bullet", "Hazards: 47 of 48 model×clip calls correct"),
+        ("bullet", f"Hazards: {n_haz - len(report.hazard_misses(grid))} of {n_haz} model×clip calls correct"),
         ("bullet", "Ambience is the weak spot: the serving rule lets any hazard window decide the clip — "
                    "a deliberate false-alarm bias"),
         ("bullet", "Clips are cut around their loudest second, which makes ambience harder than real use"),
@@ -389,15 +391,14 @@ def build_review3(M, grid):
 
     s = new_slide(prs, "Functional and edge-case tests", tag)
     table(s, ["test", "expected", "result"],
-          [["Hazard in first or second half of a clip", "detected", "pass — all 4 hazard classes"],
-           ["Ambience followed by 1 s of silence", "ambience", "fail — distress_call 0.77 (same with the "
-            "earlier model; pre-processing)"],
+          [["Sound in first or second half of a clip", "same class either way", "pass — all 5 classes"],
            ["2 s of silence", "ambience, every model", "pass — energy gate"],
            ["0.33 s clip", "every model answers", "pass — zero-padded window"],
            ["Unknown model key", "HTTP 404, server stays up", "pass"],
            ["No microphone access (LAN http)", "record disabled with reason", "pass — upload/test clips still work"],
-           ["Existing mobile app on the new server", "unchanged", "pass — 80/99 smoke test, all 5 classes"],
-           ["First request latency", "inference only", "pass — models warmed at startup (1.3 s → 47 ms)"]],
+           ["Existing mobile app on the new server", "unchanged", "pass — server/test_client.py"],
+           ["First request latency", "inference only", "pass — every model warmed at startup"],
+           ["One model bundle missing", "others keep serving", "pass — 503 for that model only"]],
           0.6, 1.05, 12.1, col_w=[4.0, 3.0, 5.1], fs=11.5, row_h=0.42)
     text(s, 0.6, 5.0, 12.1, 1.4, [
         ("body", "Found and fixed by UI testing: the server originally judged only the last second of each "
@@ -420,7 +421,7 @@ def build_review3(M, grid):
         ("bullet", "glass_break separates the models most (F1 " + " / ".join(
             f"{M[k]['per_class']['glass_break']['f1-score']:.2f}" for k in MODELS) +
             "): a transient of a few hundred ms that the CRNN's time axis catches and pooling blurs"),
-        ("bullet", "alarm and horn_skid are strong for every model since UrbanSound8K added ~5× more data"),
+        ("bullet", "alarm and horn_skid are strong for every model since UrbanSound8K added horn and siren recordings"),
         ("bullet", "distress_call recall stays above 80% for all three — the class the proposal prioritises"),
     ])
 
@@ -432,8 +433,8 @@ def build_review3(M, grid):
                    "the most valuable next step"),
         ("bullet", "169 validation windows still duplicate training audio — re-split on content hashes"),
         ("bullet", "Ambience false alarms at clip level — require agreement between consecutive windows"),
-        ("bullet", "Ambience followed by silence reads as distress_call — likely per-window normalisation, "
-                   "not yet confirmed"),
+        ("bullet", "A quiet training-set ambience clip padded with silence read as distress_call (held-out "
+                   "clip passes) — likely per-window normalisation, not yet confirmed"),
         ("bullet", "Inference runs on a laptop over LAN — export to TorchScript/ONNX for on-phone inference"),
         ("bullet", "Phone microphone needs HTTPS — certificate or native wrapper"),
         ("verdict", "Deliverables: working app + dashboard, three trained models, case study report, "
