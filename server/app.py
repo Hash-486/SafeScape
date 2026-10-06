@@ -32,9 +32,15 @@ TEST_CLIPS = ROOT / "demo_clips" / "test"
 _predictors = {}
 
 
+def exported(key):
+    return (EXPORTED_DIR / key / "best_model.pt").exists()
+
+
 def get_predictor(key=DEFAULT_MODEL):
     if key not in MODELS:
         raise HTTPException(status_code=404, detail=f"unknown model '{key}'")
+    if not exported(key):
+        raise HTTPException(status_code=503, detail=f"model '{key}' is not exported")
     if key not in _predictors:
         _predictors[key] = Predictor(EXPORTED_DIR / key)
     return _predictors[key]
@@ -44,7 +50,8 @@ def get_predictor(key=DEFAULT_MODEL):
 def warm_up():
     # the first predict pays for model load and noisereduce's first call (~1.3s); do it
     # here so the dashboard's latency figures show inference, not cold start
-    for key in MODELS:
+    # a model without a bundle is skipped, not fatal: the others (and /predict) still serve
+    for key in filter(exported, MODELS):
         get_predictor(key).predict(np.random.default_rng(0).normal(0, 0.1, 16000).astype(np.float32), 16000)
 
 
@@ -104,7 +111,8 @@ async def predict(file: UploadFile = File(...), model: str = DEFAULT_MODEL):
 @app.post("/predict/all", response_model=PredictAllResponse)
 async def predict_all(file: UploadFile = File(...)):
     y, sr = await read_upload(file)
-    return PredictAllResponse(results={k: PredictResponse(**timed_predict(k, y, sr)) for k in MODELS})
+    return PredictAllResponse(results={k: PredictResponse(**timed_predict(k, y, sr))
+                                       for k in filter(exported, MODELS)})
 
 
 @app.get("/models")
@@ -116,7 +124,8 @@ def models():
         out.append({
             "key": key, "name": name, "owner": OWNERS[key],
             "metrics": json.loads(mpath.read_text()) if mpath.exists() else None,
-            "bundle_kb": (EXPORTED_DIR / key / "best_model.pt").stat().st_size / 1024,
+            "bundle_kb": (EXPORTED_DIR / key / "best_model.pt").stat().st_size / 1024
+                         if exported(key) else None,
         })
     return {"models": out}
 
