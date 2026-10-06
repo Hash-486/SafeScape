@@ -17,7 +17,9 @@ sys.path.insert(0, str(ROOT))
 from server.inference import Predictor
 
 SR = 16000
-CLIPS = ROOT / "demo_clips"
+# held-out clips (scripts/17_make_ui_testset.py); each is the 2 s around its loudest
+# second, so [0.5 s, 1.5 s) is that second
+CLIPS = ROOT / "demo_clips" / "test"
 
 
 def main():
@@ -26,10 +28,11 @@ def main():
     failures = []
 
     print(f"{'clip':<15}{'position':<14}{'predicted':<16}{'conf':>7}")
-    for wav in sorted(CLIPS.glob("*.wav")):
-        expected = wav.stem
+    for wav in sorted(CLIPS.glob("*_1.wav")):
+        expected = wav.stem.rsplit("_", 1)[0]
         y, sr = sf.read(wav, dtype="float32")
         assert sr == SR, f"{wav.name} is {sr} Hz, expected {SR}"
+        y = y[SR // 2: SR // 2 + SR]
 
         for position, clip in (("first half", np.concatenate([y, sil])),
                                ("second half", np.concatenate([sil, y]))):
