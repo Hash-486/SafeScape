@@ -36,8 +36,9 @@
     $("cards").innerHTML = MODELS.map((m) => {
       const r = results && results[m.key];
       if (!r) {
+        const why = m.bundle_kb === null ? "Not exported — no bundle on the server" : "Waiting for a clip…";
         return `<div class="model-card"><div class="mc-name">${m.name}</div>
-          <div class="mc-owner">${m.owner}</div><div class="mc-empty">Waiting for a clip…</div></div>`;
+          <div class="mc-owner">${m.owner}</div><div class="mc-empty">${why}</div></div>`;
       }
       const badge = truth
         ? `<span class="badge ${r.predicted_class === truth ? "ok" : "bad"}">${r.predicted_class === truth ? "✓ correct" : "✗ wrong"}</span>`
@@ -91,6 +92,7 @@
   }
 
   async function record() {
+    $("recBtn").disabled = true; // one recording at a time; re-enabled when it stops
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -99,11 +101,19 @@
       return;
     }
     const chunks = [];
-    const rec = new MediaRecorder(stream);
+    let rec;
+    try {
+      rec = new MediaRecorder(stream);
+    } catch (e) {
+      stream.getTracks().forEach((t) => t.stop());
+      micUnavailable(e.message);
+      return;
+    }
     rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
     rec.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
       $("recBtn").classList.remove("recording");
+      $("recBtn").disabled = false;
       $("recBtn").textContent = "● Record 2 s";
       const blob = new Blob(chunks, { type: chunks[0] ? chunks[0].type : "audio/webm" });
       $("player").src = URL.createObjectURL(blob);
@@ -134,10 +144,11 @@
     for (let i = 0; i < CLIPS.length; i++) {
       const c = CLIPS[i];
       $("progress").textContent = `${i + 1} / ${CLIPS.length}`;
-      const blob = await (await fetch(c.url)).blob();
       let results;
       try {
-        results = await predictAll(blob, c.file);
+        const r = await fetch(c.url);
+        if (!r.ok) throw new Error(`${c.file}: status ${r.status}`);
+        results = await predictAll(await r.blob(), c.file);
       } catch (e) {
         body.insertAdjacentHTML("beforeend",
           `<tr><td>${c.file}</td><td>${c.label}</td><td colspan="${MODELS.length}" class="bad">${esc(e.message)}</td></tr>`);
@@ -145,6 +156,7 @@
       }
       renderCards(results, c.label);
       const cells = MODELS.map((m) => {
+        if (!results[m.key]) return "<td>—</td>";
         const got = results[m.key].predicted_class;
         const ok = got === c.label;
         if (ok) correct[m.key]++;
@@ -173,7 +185,7 @@
       ["macro-F1", (m) => m.metrics.macro_f1, (x) => x.toFixed(3)],
       ["distress recall", (m) => m.metrics.distress_recall, pct],
       ["params", (m) => m.metrics.params, (x) => x.toLocaleString("en-US"), true],
-      ["served size", (m) => m.bundle_kb, (x) => `${x.toFixed(0)} KB`, true],
+      ["served size", (m) => m.bundle_kb, (x) => (x === null ? "not exported" : `${x.toFixed(0)} KB`), true],
       ["CPU latency / window", (m) => m.metrics.latency_ms, (x) => `${x.toFixed(2)} ms`, true],
     ];
     const head = `<tr><th>model</th><th>owner</th>${cols.map((c) => `<th class="num">${c[0]}</th>`).join("")}</tr>`;
