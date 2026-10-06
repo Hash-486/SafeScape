@@ -46,6 +46,8 @@ def main():
     ap.add_argument("--cpu-only", action="store_true", help="force CPU (matches serving target)")
     ap.add_argument("--calibration", default=None,
                     help="path to calibration.json; applies its per-class logit bias before argmax")
+    ap.add_argument("--no-log", action="store_true",
+                    help="print metrics only; don't append to eval_results.md or write the figure (live demos)")
     ap.add_argument("--quantized", action="store_true",
                     help="--ckpt is a dynamic-int8 state dict (e.g. the served bundle); implies CPU")
     ap.add_argument("--manifest", default=str(MANIFEST),
@@ -96,6 +98,13 @@ def main():
     # counted on a fresh fp32 build: int8-packed GRU/Linear weights are not nn.Parameters
     n_params = sum(p.numel() for p in build_model(args.arch, **model_kwargs).parameters())
     size_bytes = Path(ckpt_path).stat().st_size
+
+    if args.no_log:
+        print(f"accuracy={accuracy:.3f} macro_f1={report['macro avg']['f1-score']:.3f} "
+              f"macro_recall={report['macro avg']['recall']:.3f} "
+              f"distress_recall={report['distress_call']['recall']:.3f} "
+              f"params={n_params} size_kb={size_bytes/1024:.1f} latency_ms={latency_ms:.2f}")
+        return
 
     # confusion matrix figure
     fig, ax = plt.subplots(figsize=(6, 5))
